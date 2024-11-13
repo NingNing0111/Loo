@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package me.pgthinker.message;
+
+import "cmd_type.proto";
+import "meta_data.proto";
+
+option java_multiple_files = false;
+option java_package = "me.pgthinker.message";
+option java_outer_classname = "TransferDataMessageProto";
+
+
+
+// 传输数据的消息定义
+message TransferDataMessage {
+  CmdType cmdType = 1;
+  TransferMessageMetaData metaData = 2;
+  bytes data = 3;
+}
