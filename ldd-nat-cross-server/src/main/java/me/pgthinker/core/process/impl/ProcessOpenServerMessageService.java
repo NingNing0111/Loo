@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.ProxyConfig;
 import me.pgthinker.annotation.AuthMessage;
+import me.pgthinker.annotation.MessageLog;
 import me.pgthinker.common.Constants;
 import me.pgthinker.core.handler.ProxyHandler;
 import me.pgthinker.core.process.ProcessMessageService;
@@ -40,6 +41,7 @@ public class ProcessOpenServerMessageService implements ProcessMessageService {
 
 
     @AuthMessage
+    @MessageLog
     @Override
     public void process(ChannelHandlerContext target, TransferDataMessage transferDataMessage) {
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();
@@ -65,6 +67,7 @@ public class ProcessOpenServerMessageService implements ProcessMessageService {
                     }
 
                 });
+                serverManager.addClientPort(target, port);
                 serverManager.addTcpServer(port,tcpServer);
                 target.writeAndFlush(connectMessage);
             } catch (InterruptedException e) {

@@ -7,6 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.annotation.AuthMessage;
+import me.pgthinker.annotation.MessageLog;
 import me.pgthinker.common.Constants;
 import me.pgthinker.core.process.ProcessMessageService;
 import me.pgthinker.core.manager.ServerManager;
@@ -30,6 +31,7 @@ public class ProcessTransferMessageService implements ProcessMessageService {
     private final ServerManager serverManager;
 
     @AuthMessage
+    @MessageLog
     @Override
     public void process(ChannelHandlerContext target, TransferDataMessage transferDataMessage) {
         Map<String, String> originalMetaData = transferDataMessage.getMetaData().getMetaDataMap();
@@ -40,7 +42,5 @@ public class ProcessTransferMessageService implements ProcessMessageService {
         byte[] bytes = data.toByteArray();
         ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
         visitorChannel.writeAndFlush(byteBuf);
-
-        serverManager.printInfo();
     }
 }

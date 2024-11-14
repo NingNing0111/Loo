@@ -80,19 +80,12 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
         TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(metaData, byteBuf);
         ChannelHandlerContext clientCtx = serverManager.getClientChannelCtx(licenseKey);
-
-        // 判断客户端是否连接 如果不处于连接状态 关闭本代理服务
-        if(clientCtx.channel().isActive()){
-            clientCtx.writeAndFlush(transferDataMessage);
-        }else{
-            log.info("port:{}",port);
-            serverManager.stopTcpServer(port);
-        }
+        clientCtx.writeAndFlush(transferDataMessage);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("err:{}", cause.getMessage());
+        log.error("\nerr:{}", cause.getMessage());
         ctx.close();
     }
 }

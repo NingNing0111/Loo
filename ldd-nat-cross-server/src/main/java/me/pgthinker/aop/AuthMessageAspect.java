@@ -34,8 +34,8 @@ public class AuthMessageAspect {
 
     private final ServerManager serverManager;
 
-    @Pointcut("@annotation(authMessage)")
-    public void controllerAspect(){
+    @Pointcut("@annotation(me.pgthinker.annotation.AuthMessage)")
+    public void authMessageAspect(){
     }
 
     @Around("@annotation(authMessage)")

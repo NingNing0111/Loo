@@ -35,6 +35,7 @@ public class ServerManager {
     private static final Map<String, ChannelHandlerContext> VISITOR_CHANNEL = new ConcurrentHashMap<>();
     //
     private static final Map<Integer, Map<String, String>> CLIENT_META_DATA = new ConcurrentHashMap<>();
+    private static final Map<ChannelHandlerContext, List<Integer>> CLIENT_PORTS = new ConcurrentHashMap<>();
 
     private static final Map<String, List<Integer>> CLIENT_OPEN_PORT = new ConcurrentHashMap<>();
 
@@ -128,5 +129,24 @@ public class ServerManager {
 
     public void printInfo(){
         log.info("client size:{} proxy size:{} visitor size:{}", CLIENT_CHANNEL.size(), PROXY_SERVER_DATA.size(), VISITOR_CHANNEL.size());
+    }
+
+    public void initClientPortContainers(ChannelHandlerContext clientCtx){
+        CLIENT_PORTS.put(clientCtx,new ArrayList<>());
+    }
+
+    public void addClientPort(ChannelHandlerContext clientCtx, Integer port) {
+        List<Integer> clientPort = this.getClientPort(clientCtx);
+        clientPort.add(port);
+        CLIENT_PORTS.put(clientCtx, clientPort);
+
+    }
+
+    public List<Integer> getClientPort(ChannelHandlerContext clientCtx){
+        return CLIENT_PORTS.getOrDefault(clientCtx, new ArrayList<>());
+    }
+
+    public void removeClientPort(ChannelHandlerContext clientCtx){
+        CLIENT_PORTS.remove(clientCtx);
     }
 }

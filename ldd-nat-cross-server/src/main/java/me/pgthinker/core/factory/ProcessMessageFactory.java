@@ -46,11 +46,12 @@ public class ProcessMessageFactory implements IProcessMessageFactory{
             case OPEN_SERVER -> { // 开放端口服务
                 return processOpenServerMessage;
             }
-            case CLOSE_SERVER -> { // 关闭端口服务
-                return processCloseServerMessage;
-            }
             case TRANSFER -> { // 信息传输
                 return processTransferMessage;
+            }
+
+            case CLOSE_SERVER -> { // 关闭端口服务
+                return processCloseServerMessage;
             }
             case HEARTBEAT -> { // 心跳检测
                 return processHeartbeatMessage;

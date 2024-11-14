@@ -4,6 +4,7 @@ import cn.hutool.crypto.digest.BCrypt;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.pgthinker.annotation.MessageLog;
 import me.pgthinker.common.Constants;
 import me.pgthinker.config.ServerConfig;
 import me.pgthinker.core.process.ProcessMessageService;
@@ -28,6 +29,7 @@ public class ProcessAuthMessageService implements ProcessMessageService {
     private final ServerConfig serverConfig;
     private final ServerManager serverManager;
 
+    @MessageLog
     @Override
     public void process(ChannelHandlerContext target, TransferDataMessage transferDataMessage) {
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();
