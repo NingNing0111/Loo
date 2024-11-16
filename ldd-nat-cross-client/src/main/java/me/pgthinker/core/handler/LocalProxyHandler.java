@@ -46,6 +46,7 @@ public class LocalProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) throws Exception {
+        log.info("data:{}", byteBuf);
         String licenseKey = metaData.get(Constants.LICENSE_KEY);
         TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
         TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(metaData, byteBuf);

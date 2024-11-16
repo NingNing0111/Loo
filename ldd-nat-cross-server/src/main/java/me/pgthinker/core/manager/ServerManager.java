@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @Project: me.pgthinker.manager
@@ -91,6 +92,13 @@ public class ServerManager {
     }
 
     public void removeVisitorChannel(String channelId){
+        List<String> keys = VISITOR_CHANNEL.keySet().stream().toList();
+        for(String key: keys) {
+            ChannelHandlerContext channelHandlerContext = VISITOR_CHANNEL.get(key);
+            if(!channelHandlerContext.channel().isActive()){
+                channelHandlerContext.channel().close();
+            }
+        }
         VISITOR_CHANNEL.remove(channelId);
     }
 
@@ -99,6 +107,14 @@ public class ServerManager {
     }
 
     public ChannelHandlerContext getVisitorChannel(String visitorId) {
+        List<String> keys = VISITOR_CHANNEL.keySet().stream().toList();
+        for(String key: keys) {
+            ChannelHandlerContext channelHandlerContext = VISITOR_CHANNEL.get(key);
+            if(!channelHandlerContext.channel().isActive()){
+                channelHandlerContext.channel().close();
+                VISITOR_CHANNEL.remove(key);
+            }
+        }
         return VISITOR_CHANNEL.get(visitorId);
     }
 

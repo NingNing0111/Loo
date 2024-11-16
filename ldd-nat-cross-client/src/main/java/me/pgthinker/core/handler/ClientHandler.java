@@ -68,6 +68,12 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
         }
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        this.ctx.close();
+        cause.printStackTrace();
+    }
+
     /**
      * 认证错误异常
      */

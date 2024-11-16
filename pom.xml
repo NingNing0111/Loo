@@ -13,6 +13,7 @@
         <module>ldd-nat-cross-core</module>
         <module>ldd-nat-cross-server</module>
         <module>ldd-nat-cross-client</module>
+        <module>ldd-nat-cross-admin</module>
     </modules>
 
 

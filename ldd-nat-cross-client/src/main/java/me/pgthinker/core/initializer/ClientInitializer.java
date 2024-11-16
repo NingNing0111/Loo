@@ -3,7 +3,6 @@ package me.pgthinker.core.initializer;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
@@ -13,9 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.config.ClientConfig;
 import me.pgthinker.core.handler.ClientHandler;
-import me.pgthinker.handler.ClientIdleStateTrigger;
 import me.pgthinker.message.TransferDataMessageProto;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 

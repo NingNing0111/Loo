@@ -9,7 +9,7 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>ldd-nat-cross-server</artifactId>
+    <artifactId>ldd-nat-cross-admin</artifactId>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
 
@@ -31,7 +31,7 @@
     </dependencies>
 
     <build>
-        <finalName>server</finalName>
+        <finalName>admin</finalName>
         <plugins>
             <plugin>
 
@@ -42,7 +42,7 @@
                     <!--使用-Dloader.path需要在打包的时候增加<layout>ZIP</layout>，不指定的话-Dloader.path不生效-->
                     <layout>ZIP</layout>
                     <!-- 指定该jar包启动时的主类[建议] -->
-                    <mainClass>me.pgthinker.ServerApplication</mainClass>
+                    <mainClass>me.pgthinker.AdminApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

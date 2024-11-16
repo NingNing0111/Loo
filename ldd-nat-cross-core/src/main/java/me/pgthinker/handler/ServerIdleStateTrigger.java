@@ -16,8 +16,9 @@ import me.pgthinker.message.TransferDataMessageProto.TransferDataMessage;
  * @Description:
  */
 @Slf4j
-@ChannelHandler.Sharable
 public class ServerIdleStateTrigger extends SimpleChannelInboundHandler<TransferDataMessage> {
+
+
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, TransferDataMessage transferDataMessage) throws Exception {
         log.info("message:{}", transferDataMessage);
@@ -28,8 +29,7 @@ public class ServerIdleStateTrigger extends SimpleChannelInboundHandler<Transfer
         if (evt instanceof IdleStateEvent){
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.READER_IDLE){
-                // ...
-                log.info("{}", event);
+                log.info("event:{}", event);
             }
         } else {
             super.userEventTriggered(ctx,evt);
