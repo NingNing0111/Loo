@@ -31,11 +31,4 @@ public class ClientManager {
         LOCAL_PROXY_CHANNEL.remove(visitor);
     }
 
-    public static void stopAllChannel() {
-        LOCAL_PROXY_CHANNEL.values().forEach(item->{
-            item.getCtx().close();
-        });
-    }
-
-
 }

@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ public class ServerConfig {
     private Integer readIdleTime = 60;
     private Integer writeIdleTime = 40;
     private Integer userChannelReadIdleTime = 0;
-    private List<CmdType> msgLogRange = Arrays.asList(CmdType.OPEN_SERVER, CmdType.AUTH);
+    private List<CmdType> msgLogRange = Collections.emptyList();
 
     /**
      * 密码加密不允许set覆盖

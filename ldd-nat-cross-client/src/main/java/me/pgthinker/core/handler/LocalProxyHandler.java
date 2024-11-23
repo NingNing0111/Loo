@@ -38,6 +38,11 @@ public class LocalProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         this.ctx = ctx;
     }
 
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        ctx.close();
+    }
+
     /**
      * 有读数据 封装TransferDataMessage 发送给server
      * @param channelHandlerContext
@@ -46,7 +51,6 @@ public class LocalProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) throws Exception {
-        log.info("data:{}", byteBuf);
         String licenseKey = metaData.get(Constants.LICENSE_KEY);
         TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
         TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(metaData, byteBuf);
@@ -56,7 +60,8 @@ public class LocalProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         ctx.close();
-        log.info("Local proxy exception. Exception message:{} Reason:{}", cause.getMessage(), cause.getStackTrace());
+        log.info("Local proxy exception. Exception message:{} ", cause.getMessage());
+        cause.printStackTrace();
     }
 
 

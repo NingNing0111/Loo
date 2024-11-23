@@ -36,6 +36,8 @@ public class ProcessMessageFactory implements IProcessMessageFactory{
     private ProcessMessageService processTransferMessage;
     @Resource(name = "processDisconnectMessage")
     private ProcessMessageService processDisconnectMessage;
+    @Resource(name = "processConnectServerMessage")
+    private ProcessMessageService processConnectServerMessage;
 
     @Override
     public ProcessMessageService getProcessService(CmdType cmdType) {
@@ -58,6 +60,9 @@ public class ProcessMessageFactory implements IProcessMessageFactory{
             }
             case DISCONNECT -> { // 端口访问channel连接
                 return processDisconnectMessage;
+            }
+            case CONNECT -> {
+                return processConnectServerMessage;
             }
         }
         throw new RuntimeException("unknown type:" + cmdType);

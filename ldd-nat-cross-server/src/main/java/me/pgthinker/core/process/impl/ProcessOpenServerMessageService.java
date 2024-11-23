@@ -48,14 +48,15 @@ public class ProcessOpenServerMessageService implements ProcessMessageService {
         String licenseKey = metaDataMap.get(Constants.LICENSE_KEY);
 
         ProxyConfig proxyConfig = ProxyConfig.fromMap(metaDataMap);
-        String clientId = serverManager.newProxyClientChannel(proxyConfig, licenseKey);
-        TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-        TransferDataMessage connectMessage = transferDataMessageHelper.buildConnectMessage(proxyConfig, clientId);
+        serverManager.addProxyPort(licenseKey, proxyConfig.getOpenPort());
+        serverManager.addMetaData(proxyConfig.getOpenPort(),metaDataMap);
+        // 构建消息
 
         Integer port = proxyConfig.getOpenPort();
         boolean isUsablePort = NetUtil.isUsableLocalPort(port);
 
-        // 如果端口可用
+        // 实现端口复用
+        // 如果端口可用 创建server
         if(isUsablePort) {
             TcpServer tcpServer = new TcpServer(boss, worker);
             try {
@@ -67,17 +68,10 @@ public class ProcessOpenServerMessageService implements ProcessMessageService {
                     }
 
                 });
-                serverManager.addClientPort(target, port);
                 serverManager.addTcpServer(port,tcpServer);
-                target.writeAndFlush(connectMessage);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }else {
-            String message = String.format("port:[%s] already used.", port);
-            TransferDataMessage disconnectMessage = transferDataMessageHelper.buildDisconnectMessage(message);
-            target.writeAndFlush(disconnectMessage);
-            target.close();
         }
     }
 }

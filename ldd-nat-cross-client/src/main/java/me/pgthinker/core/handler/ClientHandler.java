@@ -4,11 +4,10 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +20,11 @@ import me.pgthinker.helper.TransferDataMessageHelper;
 import me.pgthinker.core.manager.ClientManager;
 import me.pgthinker.message.TransferDataMessageProto.TransferDataMessage;
 import me.pgthinker.net.TcpConnect;
+import org.apache.commons.lang.ObjectUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @Project: me.pgthinker.core.handler
@@ -34,7 +35,7 @@ import java.util.Map;
 @Slf4j
 public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessage> {
 
-    private ChannelHandlerContext ctx;
+    private ChannelHandlerContext clientCtx;
     private final ClientConfig clientConfig;
     private final ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
@@ -43,17 +44,24 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
         this.clientConfig = clientConfig;
     }
 
+    /**
+     * 与服务端建立起连接后 发送认证消息
+     * @param ctx
+     * @throws Exception
+     */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        this.clientCtx = ctx;
         TransferDataMessage transferDataMessage = TransferDataMessageHelper.buildAuthMessage(clientConfig.getPassword());
-        ctx.writeAndFlush(transferDataMessage);
-        this.ctx = ctx;
+        this.clientCtx.writeAndFlush(transferDataMessage);
+        log.info("Client connect....");
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-
         this.channelGroup.close();
+        this.clientCtx = null;
+        log.info("Client disconnect....");
     }
 
     @Override
@@ -70,15 +78,15 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.ctx.close();
         cause.printStackTrace();
+        ctx.close();
     }
 
     /**
      * 认证错误异常
      */
     private void handleAuthErr(){
-        this.ctx.close();
+        this.clientCtx.close();
         this.channelGroup.close();
         throw new AuthenticationException(clientConfig.getServerHost(), clientConfig.getServerPort());
     }
@@ -93,12 +101,11 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
         Map<String, String> metaData = transferDataMessage.getMetaData().getMetaDataMap();
         String licenseKey = metaData.get(Constants.LICENSE_KEY);
         TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-
         // 请求服务端开放端口 启动用于访问的Server
         List<ProxyConfig> proxies = clientConfig.getProxies();
         for(ProxyConfig proxyConfig: proxies){
             TransferDataMessage openServerMessage = transferDataMessageHelper.buildOpenServerMessage(proxyConfig);
-            this.ctx.writeAndFlush(openServerMessage);
+            this.clientCtx.writeAndFlush(openServerMessage);
         }
     }
 
@@ -111,9 +118,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();
         ProxyConfig proxyConfig = ProxyConfig.fromMap(metaDataMap);
         String visitorId = metaDataMap.get(Constants.VISITOR_ID);
-        TcpConnect tcpConnect = new TcpConnect();
+        TcpConnect tcpConnect = new TcpConnect(new NioEventLoopGroup());
         try {
-            ChannelHandlerContext serverCtx = this.ctx;
+            ChannelHandlerContext serverCtx = this.clientCtx;
             tcpConnect.connect(proxyConfig.getHost(), proxyConfig.getPort(), new ChannelInitializer<>() {
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
@@ -126,38 +133,40 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
         }catch (Exception e){
             log.info("error:{}", e.getMessage());
         }
+        String licenseKey = metaDataMap.get(Constants.LICENSE_KEY);
+        TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+        TransferDataMessage connectedMessage = transferDataMessageHelper.buildConnectMessage(proxyConfig, visitorId);
+        this.clientCtx.writeAndFlush(connectedMessage);
     }
 
     /**
-     * 服务器发起断开请求
-     * 1. 关闭本地所有Channel 释放资源
-     * 2. 关闭客户端与服务端的Channel
      * @param transferDataMessage
      * @throws InterruptedException
      */
     private void handleDisconnect(TransferDataMessage transferDataMessage) throws InterruptedException {
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();
-        String message = metaDataMap.get(Constants.MESSAGE);
-        if(StrUtil.isNotEmpty(message)){
-            log.error("Error message from server: {}", message);
-            this.ctx.close();
-        }else{
-            String visitorId = metaDataMap.get(Constants.VISITOR_ID);
-            LocalProxyHandler localProxyChannel = ClientManager.getLocalProxyChannel(visitorId);
-            if(localProxyChannel != null) {
-                localProxyChannel.getCtx().close();
-                ClientManager.removeLocalProxyChannel(visitorId); // 移除
-            }
+        String visitorId = metaDataMap.get(Constants.VISITOR_ID);
+        LocalProxyHandler localProxyChannel = ClientManager.getLocalProxyChannel(visitorId);
+        if(localProxyChannel != null) {
+            localProxyChannel.getCtx().close();
+            ClientManager.removeLocalProxyChannel(visitorId); // 移除
         }
     }
 
     private void handleTransfer (TransferDataMessage transferDataMessage) throws InterruptedException {
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();
         String visitorID = metaDataMap.get(Constants.VISITOR_ID);
+        String licenseKey = metaDataMap.get(Constants.LICENSE_KEY);
         byte[] bytes = transferDataMessage.getData().toByteArray();
         ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
         LocalProxyHandler localProxyChannel = ClientManager.getLocalProxyChannel(visitorID);
-        localProxyChannel.getCtx().writeAndFlush(byteBuf);
+        if(localProxyChannel != null){
+            localProxyChannel.getCtx().writeAndFlush(byteBuf);
+        }else{
+            // TODO: 断开请求
+            TransferDataMessageHelper helper = new TransferDataMessageHelper(licenseKey);
+            helper.buildDisconnectMessage(ProxyConfig.fromMap(metaDataMap),visitorID);
+        }
     }
 
 }

@@ -116,6 +116,14 @@ public class TransferDataMessageHelper {
         return TransferDataMessage.newBuilder().setMetaData(metaData).setCmdType(CmdType.DISCONNECT).build();
     }
 
+
+    public TransferDataMessage buildDisconnectMessage(ProxyConfig proxyConfig) {
+        Map<String, String> metaMap = proxyConfig.toMap();
+        metaMap.put(Constants.LICENSE_KEY, licenseKey);
+        TransferMessageMetaData metaData = TransferMessageMetaData.newBuilder().putAllMetaData(metaMap).setTimestamp(TimestampUtil.now()).build();
+        return TransferDataMessage.newBuilder().setMetaData(metaData).setCmdType(CmdType.DISCONNECT).build();
+    }
+
     public TransferDataMessage buildDisconnectMessage(String message) {
         Map<String, String> metaMap = new HashMap<>();
         metaMap.put(Constants.MESSAGE, message);
@@ -127,6 +135,13 @@ public class TransferDataMessageHelper {
         Map<String, String> metaMap = proxyConfig.toMap();
         metaMap.put(Constants.LICENSE_KEY, licenseKey);
         metaMap.put(Constants.VISITOR_ID, visitorId);
+        TransferMessageMetaData metaData = TransferMessageMetaData.newBuilder().putAllMetaData(metaMap).setTimestamp(TimestampUtil.now()).build();
+        return TransferDataMessage.newBuilder().setMetaData(metaData).setCmdType(CmdType.CONNECT).build();
+    }
+
+    public TransferDataMessage buildConnectMessage(ProxyConfig proxyConfig) {
+        Map<String, String> metaMap = proxyConfig.toMap();
+        metaMap.put(Constants.LICENSE_KEY, licenseKey);
         TransferMessageMetaData metaData = TransferMessageMetaData.newBuilder().putAllMetaData(metaMap).setTimestamp(TimestampUtil.now()).build();
         return TransferDataMessage.newBuilder().setMetaData(metaData).setCmdType(CmdType.CONNECT).build();
     }

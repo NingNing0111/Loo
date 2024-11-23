@@ -1,8 +1,10 @@
 package me.pgthinker.core.handler;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.ProxyConfig;
@@ -13,7 +15,9 @@ import me.pgthinker.message.TransferDataMessageProto.TransferDataMessage;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @Project: me.pgthinker.core.handler
@@ -29,39 +33,63 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         this.serverManager = SpringUtil.getBean(ServerManager.class);
     }
 
+    /**
+     * 发送Disconnect消息
+     * @param ctx
+     * @throws Exception
+     */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        String channelId = ctx.channel().id().asLongText();
-        serverManager.removeVisitorChannel(channelId);
-        channelHandle(ctx,1,channelId);
-
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        String channelId = ctx.channel().id().asLongText();
-        serverManager.setVisitorChannel(channelId, ctx);
-        channelHandle(ctx,0,channelId);
-
-    }
-
-    private void channelHandle(ChannelHandlerContext ctx, int type,String channelId) {
         // 根据openPort 获取对应的客户端
         Integer port = getPort(ctx);
-        // 构建连接消息体
-        Map<String, String> metaData = serverManager.getMetaData(port);
-        String licenseKey = metaData.get(Constants.LICENSE_KEY);
-        ProxyConfig proxyConfig = ProxyConfig.fromMap(metaData);
-        TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-        TransferDataMessage message;
-        if(type == 0){ // 连接消息
-            message = transferDataMessageHelper.buildConnectMessage(proxyConfig, channelId);
-        }else { // 断开消息
-            message = transferDataMessageHelper.buildDisconnectMessage(proxyConfig, channelId);
-        }
+        List<ChannelHandlerContext> clientChannelCtx = serverManager.getClientChannelCtx(port);
+        clientChannelCtx.forEach(clientCtx -> {
+            if(clientCtx != null){
+                List<Map<String,String>> metas = serverManager.getMetaData(port);
+                metas.forEach(meta->{
+                    String licenseKey = meta.get(Constants.LICENSE_KEY);
+                    ProxyConfig proxyConfig = ProxyConfig.fromMap(meta);
+                    String visitorId = serverManager.getVisitorId(ctx);
+                    TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+                    TransferDataMessage message;
+                    message = transferDataMessageHelper.buildDisconnectMessage(proxyConfig, visitorId);
+                    clientCtx.writeAndFlush(message);
+                });
+            }
+        });
+        ctx.close();
+        serverManager.removeVisitorCtx(ctx);
+    }
 
-        ChannelHandlerContext clientCtx = serverManager.getClientChannelCtx(licenseKey);
-        clientCtx.writeAndFlush(message);
+    /**
+     * 发送Connect消息
+     * @param ctx
+     * @throws Exception
+     */
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        // 根据openPort 获取对应的客户端
+        Integer port = getPort(ctx);
+        List<ChannelHandlerContext> clientChannelCtx = serverManager.getClientChannelCtx(port);
+
+        String visitorId = serverManager.addVisitorCtx(ctx);
+        // 构建连接消息体
+        clientChannelCtx.forEach(clientCtx->{
+            if(clientCtx != null){
+                List<Map<String,String>> metas = serverManager.getMetaData(port);
+                metas.forEach(metaData->{
+                    ctx.channel().config().setOption(ChannelOption.AUTO_READ, false);
+                    String licenseKey = metaData.get(Constants.LICENSE_KEY);
+                    ProxyConfig proxyConfig = ProxyConfig.fromMap(metaData);
+                    TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+                    TransferDataMessage message;
+                    message = transferDataMessageHelper.buildConnectMessage(proxyConfig, visitorId);
+                    clientCtx.writeAndFlush(message);
+                });
+
+            }
+        });
+
     }
 
     private Integer getPort(ChannelHandlerContext ctx) {
@@ -71,21 +99,34 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception {
-        String channelId = ctx.channel().id().asLongText();
         Integer port = getPort(ctx);
-        Map<String, String> originalMetaData = serverManager.getMetaData(port);
-        Map<String, String> metaData = new HashMap<>(originalMetaData);
-        metaData.put(Constants.VISITOR_ID, channelId);
-        String licenseKey = metaData.get(Constants.LICENSE_KEY);
-        TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-        TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(metaData, byteBuf);
-        ChannelHandlerContext clientCtx = serverManager.getClientChannelCtx(licenseKey);
-        clientCtx.writeAndFlush(transferDataMessage);
+        // 端口复用 一个端口对应多个客户端
+        List<ChannelHandlerContext> clientChannelCtx = serverManager.getClientChannelCtx(port);
+        String visitorId = serverManager.getVisitorId(ctx);
+        // 将数据发布到每个客户端
+        clientChannelCtx.stream().filter(ObjectUtil::isNotEmpty).forEach(clientCtx->{
+            if(clientCtx.channel().config().isAutoRead()){
+                List<Map<String, String>> metas = serverManager.getMetaData(port);
+                metas.forEach(metaData->{
+                    HashMap<String, String> data = new HashMap<>(metaData);
+                    data.put(Constants.VISITOR_ID, visitorId);
+                    String licenseKey = metaData.get(Constants.LICENSE_KEY);
+                    TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+                    TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(data, byteBuf);
+                    clientCtx.writeAndFlush(transferDataMessage);
+                });
+            }else{
+                serverManager.removeClientChannel(clientCtx);
+                clientCtx.close();
+            }
+        });
+
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("\nerr:{}", cause.getMessage());
+        cause.printStackTrace();
         ctx.close();
     }
 }

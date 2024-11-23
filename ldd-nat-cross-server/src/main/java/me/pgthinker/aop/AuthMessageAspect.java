@@ -50,7 +50,11 @@ public class AuthMessageAspect {
         List<String> licenseKeyList = serverManager.getLicenseKeyList();
         if(!licenseKeyList.contains(licenseKey)){
             ctx.close();
-            throw new RuntimeException("AUTH_ERROR");
+            logger.error("AUTH_ERROR!");
+            logger.error("CmdType:{}", message.getCmdType());
+            logger.error("MetaData:{}", message.getMetaData().getMetaDataMap());
+            logger.error("All licenseKey:{}", licenseKeyList);
+            throw new RuntimeException("AUTH_ERROR. cmdType:" + message.getCmdType());
         }
         // 否则放行
         return joinPoint.proceed();

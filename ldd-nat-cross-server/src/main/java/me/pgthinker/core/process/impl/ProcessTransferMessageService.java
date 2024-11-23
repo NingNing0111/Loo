@@ -37,11 +37,12 @@ public class ProcessTransferMessageService implements ProcessMessageService {
         Map<String, String> originalMetaData = transferDataMessage.getMetaData().getMetaDataMap();
         Map<String, String> metaDataMap = new HashMap<>(originalMetaData);
         String visitorId = metaDataMap.get(Constants.VISITOR_ID);
-        log.info("visitorId:{}", visitorId);
-        ChannelHandlerContext visitorChannel = serverManager.getVisitorChannel(visitorId);
-        ByteString data = transferDataMessage.getData();
-        byte[] bytes = data.toByteArray();
-        ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
-        visitorChannel.writeAndFlush(byteBuf);
+        ChannelHandlerContext visitorChannel = serverManager.getVisitorCtx(visitorId);
+        if(visitorChannel != null){
+            ByteString data = transferDataMessage.getData();
+            byte[] bytes = data.toByteArray();
+            ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
+            visitorChannel.writeAndFlush(byteBuf);
+        }
     }
 }

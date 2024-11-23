@@ -39,16 +39,12 @@ public class ProcessAuthMessageService implements ProcessMessageService {
         TransferDataMessage authResMessage;
         // 校验通过
         if(isOk){
-            String licenseKey = serverManager.newClientChannel(target);
+            String licenseKey = serverManager.addClientChannel(target);
             authResMessage = TransferDataMessageHelper.buildAuthOkMessage(licenseKey);
+            target.writeAndFlush(authResMessage);
         }else{
             authResMessage = TransferDataMessageHelper.buildAuthErrMessage();
-        }
-        // 发送
-        target.writeAndFlush(authResMessage);
-
-        // 如果校验失败 断开Channel
-        if(!isOk){
+            target.writeAndFlush(authResMessage);
             target.close();
         }
     }

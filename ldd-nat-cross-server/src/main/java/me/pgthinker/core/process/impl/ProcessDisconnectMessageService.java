@@ -4,11 +4,13 @@ import cn.hutool.core.util.ObjectUtil;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.pgthinker.ProxyConfig;
 import me.pgthinker.annotation.AuthMessage;
 import me.pgthinker.annotation.MessageLog;
 import me.pgthinker.common.Constants;
 import me.pgthinker.core.process.ProcessMessageService;
 import me.pgthinker.core.manager.ServerManager;
+import me.pgthinker.helper.TransferDataMessageHelper;
 import me.pgthinker.message.TransferDataMessageProto.TransferDataMessage;
 import org.springframework.stereotype.Component;
 
@@ -33,11 +35,12 @@ public class ProcessDisconnectMessageService implements ProcessMessageService {
     public void process(ChannelHandlerContext target, TransferDataMessage transferDataMessage) {
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();
         String licenseKey = metaDataMap.get(Constants.LICENSE_KEY);
-        List<Integer> proxyPort = serverManager.getProxyPort(licenseKey);
-        for(Integer port: proxyPort){
-            serverManager.stopTcpServer(port);
-        }
-        serverManager.removePort(licenseKey);
-        target.close();
+        String visitorId = metaDataMap.get(Constants.VISITOR_ID);
+        ChannelHandlerContext visitorCtx = serverManager.getVisitorCtx(visitorId);
+        visitorCtx.close();
+        serverManager.removeVisitorCtx(visitorId);
+        TransferDataMessageHelper helper = new TransferDataMessageHelper(licenseKey);
+        TransferDataMessage disconnectMessage = helper.buildDisconnectMessage(ProxyConfig.fromMap(metaDataMap), visitorId);
+        target.writeAndFlush(disconnectMessage);
     }
 }

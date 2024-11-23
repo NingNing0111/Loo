@@ -1,5 +1,8 @@
 package me.pgthinker.common;
 
+import io.netty.channel.Channel;
+import io.netty.util.AttributeKey;
+
 /**
  * @Project: me.pgthinker.common
  * @Author: De Ning
@@ -57,4 +60,5 @@ public interface Constants {
     String VISITOR_ID = "visitor_id";
 
     String MESSAGE = "message";
+    AttributeKey<Channel> REAL_CHANNEL = AttributeKey.newInstance("real_channel");
 }

@@ -1,6 +1,8 @@
 package me.pgthinker.client;
 
+import io.netty.channel.nio.NioEventLoopGroup;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.config.ClientConfig;
@@ -20,11 +22,12 @@ import org.springframework.stereotype.Component;
 public class NatClient {
 
     private final ClientConfig clientConfig;
-
+    @Resource(name = "worker")
+    private final NioEventLoopGroup worker;
     @PostConstruct
     public void init() {
         try {
-            TcpConnect tcpConnect = new TcpConnect();
+            TcpConnect tcpConnect = new TcpConnect(worker);
             ClientInitializer clientInitializer = new ClientInitializer(clientConfig);
             tcpConnect.connect(clientConfig.getServerHost(), clientConfig.getServerPort(), clientInitializer);
         } catch (Exception e) {

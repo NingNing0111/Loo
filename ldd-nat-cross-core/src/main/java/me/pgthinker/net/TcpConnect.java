@@ -1,10 +1,7 @@
 package me.pgthinker.net;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -22,9 +19,14 @@ public class TcpConnect {
     @Getter
     private Channel channel;
 
+    private final NioEventLoopGroup workerGroup;
+
+    public TcpConnect(NioEventLoopGroup workerGroup) {
+        this.workerGroup = workerGroup;
+    }
+
 
     public void connect(String host, int port, ChannelInitializer<SocketChannel> channelInitializer) throws InterruptedException{
-        NioEventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap();
             b.group(workerGroup);
