@@ -11,4 +11,5 @@ client:
       port: 9011
       protocol: tcp
       openPort: 8891
-
+server:
+  port: 5564

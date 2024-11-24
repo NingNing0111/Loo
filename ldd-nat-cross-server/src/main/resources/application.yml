@@ -6,6 +6,3 @@ server:
 admin:
   enabled: false
 
-logging:
-  level:
-    root: debug

@@ -7,11 +7,15 @@
         <groupId>me.pgthinker</groupId>
         <artifactId>ldd-nat-cross</artifactId>
         <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <packaging>jar</packaging>
+
     <artifactId>ldd-nat-cross-core</artifactId>
     <name>${project.artifactId}</name>
+
+    <description>ldd-nat-cross-core </description>
 
     <dependencies>
         <dependency>
@@ -43,6 +47,7 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
     </dependencies>
+
     <build>
         <extensions>
             <extension>
@@ -67,5 +72,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

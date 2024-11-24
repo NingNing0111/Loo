@@ -7,23 +7,14 @@
         <groupId>me.pgthinker</groupId>
         <artifactId>ldd-nat-cross</artifactId>
         <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>ldd-nat-cross-admin</artifactId>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
 
-
     <dependencies>
-        <dependency>
-            <groupId>me.pgthinker</groupId>
-            <artifactId>ldd-nat-cross-core</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -37,20 +28,6 @@
 
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring.boot.parent.version}</version>
-                <configuration>
-                    <!--使用-Dloader.path需要在打包的时候增加<layout>ZIP</layout>，不指定的话-Dloader.path不生效-->
-                    <layout>ZIP</layout>
-                    <!-- 指定该jar包启动时的主类[建议] -->
-                    <mainClass>me.pgthinker.AdminApplication</mainClass>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
