@@ -1,0 +1,14 @@
+server:
+  port: 7989
+
+
+
+admin:
+  port: 7990
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ldd-nat-cross?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true&allowPublicKeyRetrieval=true
+    username: root
+    password: Zkqa123.com

@@ -1,34 +1,26 @@
 package me.pgthinker.config;
 
 import io.netty.channel.nio.NioEventLoopGroup;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * @Project: me.pgthinker.config
- * @Author: De Ning
- * @Date: 2024/10/22 23:46
+ * @Author: NingNing0111
+ * @Github: https://github.com/ningning0111
+ * @Date: 2024/11/24 22:54
  * @Description:
  */
 @Configuration
-@RequiredArgsConstructor
 public class AppConfig {
-
-    private final ServerConfig serverConfig;
-
     @Bean(value = "boss")
     public NioEventLoopGroup boss(){
-        return new NioEventLoopGroup(serverConfig.getBossCnt());
+        return new NioEventLoopGroup(1);
     }
 
     @Bean(value = "worker")
     public NioEventLoopGroup worker(){
-        return new NioEventLoopGroup(serverConfig.getWorkerCnt());
+        return new NioEventLoopGroup();
     }
 
-    @Bean(value = "admin")
-    public NioEventLoopGroup admin() {
-        return new NioEventLoopGroup(serverConfig.getAdminCnt());
-    }
 }

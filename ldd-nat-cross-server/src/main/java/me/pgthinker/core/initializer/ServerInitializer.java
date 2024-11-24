@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
  * @Date: 2024/10/7 16:57
  * @Description:
  */
-@Slf4j
 @RequiredArgsConstructor
 public class ServerInitializer extends ChannelInitializer<NioSocketChannel> {
 

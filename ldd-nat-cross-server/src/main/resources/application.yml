@@ -4,5 +4,8 @@ server:
 #  msg-log-range: auth, transfer, open_server
 
 admin:
-  enabled: false
+  enabled: true
+  hostname: localhost
+  port: 7990
+
 

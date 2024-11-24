@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package me.pgthinker.admin;
+
+
+option java_multiple_files = false;
+option java_package = "me.pgthinker.admin.enums";
+option java_outer_classname = "AdminCmdTypeProto";
+
+
+
+// 传输数据的指令类型
+enum CmdType {
+  ///// 通用
+  REGISTER = 0; // 注册
+  TRANSFER = 1; // 数据传输
+  DISCONNECT = 2; // 断开连接
+}

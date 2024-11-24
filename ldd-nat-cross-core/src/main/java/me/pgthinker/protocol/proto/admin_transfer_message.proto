@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package me.pgthinker.admin;
+
+import "admin_cmd_type.proto";
+import "admin_data.proto";
+
+option java_multiple_files = false;
+option java_package = "me.pgthinker.admin.message";
+option java_outer_classname = "AdminTransferDataMessageProto";
+
+
+
+// 传输数据的消息定义
+message TransferDataMessage {
+  CmdType cmdType = 1;
+  AdminData data = 2;
+}

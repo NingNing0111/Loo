@@ -29,6 +29,7 @@ public class ServerConfig {
     private String password;
     private Integer bossCnt = 1;
     private Integer workerCnt = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
+    private Integer adminCnt = 1;
     private Integer readIdleTime = 60;
     private Integer writeIdleTime = 40;
     private Integer userChannelReadIdleTime = 0;
