@@ -1,10 +1,8 @@
 server:
   port: 7989
+  servlet:
+    context-path: /api
 
-
-
-admin:
-  port: 7990
 
 spring:
   datasource:
@@ -12,3 +10,25 @@ spring:
     url: jdbc:mysql://localhost:3306/ldd-nat-cross?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true&allowPublicKeyRetrieval=true
     username: root
     password: Zkqa123.com
+
+admin:
+  port: 7990
+  secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 86400000 # a day
+  password: 123456
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    enable-open-api: true
+    enable-group: true
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: me.pgthinker.controller
+

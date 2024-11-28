@@ -2,8 +2,10 @@ package me.pgthinker.core.Manager;
 
 import io.netty.channel.ChannelHandlerContext;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @Project: me.pgthinker.core.Manager
@@ -40,6 +42,10 @@ public class AdminManager {
                 return;
             }
         }
+    }
+
+    public static List<String> serverIds() {
+        return ADMIN_SERVER_CONTEXT.values().stream().map(item->item.channel().id().asLongText()).distinct().collect(Collectors.toList());
     }
 
 }

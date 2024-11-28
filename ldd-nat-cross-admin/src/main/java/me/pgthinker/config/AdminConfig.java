@@ -16,4 +16,9 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class AdminConfig {
     private Integer port;
+    private String secretKey;
+    private String expiration;
+    private String username = "admin";
+    private String password;
+    private Boolean newAccount = false;
 }

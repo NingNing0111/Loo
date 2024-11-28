@@ -15,22 +15,6 @@ public interface Constants {
      */
     String AUTH_PASSWORD = "auth_password";
     /**
-     * 客户端ID
-     *        |--id-1--- client1
-     * server |--id-2--- client2
-     *        |--id-3--- client3
-     *
-     */
-    String CLIENT_ID = "client_id";
-    /**
-     * 内网的隧道ID
-     *
-     *        |--id-1---- mysql
-     * client |--id-2---- redis
-     *        |--id-3---- minio
-     */
-    String CLIENT_CHANNEL_ID = "client_channel_id";
-    /**
      * 内网代理地址
      */
     String PROXY_HOST = "proxy_host";
@@ -60,5 +44,4 @@ public interface Constants {
     String VISITOR_ID = "visitor_id";
 
     String MESSAGE = "message";
-    AttributeKey<Channel> REAL_CHANNEL = AttributeKey.newInstance("real_channel");
 }

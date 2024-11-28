@@ -1,10 +1,12 @@
 package me.pgthinker.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -16,7 +18,7 @@ import java.time.LocalDateTime;
  */
 @TableName("server_system_info")
 @Data
-public class ServerSystemInfoDO {
+public class ServerSystemInfoDO implements Serializable {
 
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
@@ -27,4 +29,8 @@ public class ServerSystemInfoDO {
     private Long usableMemory;
     private Long freeMemory;
     private LocalDateTime registerTime;
+
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }

@@ -1,15 +1,18 @@
 package me.pgthinker.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.admin.common.AdminConstants;
 import me.pgthinker.mapper.ServerSystemInfoMapper;
 import me.pgthinker.model.entity.ServerSystemInfoDO;
+import me.pgthinker.model.vo.ServerSystemReqVO;
 import me.pgthinker.service.ServerSystemInfoService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,5 +44,13 @@ public class ServerSystemInfoServiceImpl implements ServerSystemInfoService {
         serverSystemInfoDO.setUsableMemory(Long.parseLong(usableMemory));
         serverSystemInfoDO.setRegisterTime(LocalDateTime.now());
         serverSystemInfoMapper.insert(serverSystemInfoDO);
+    }
+
+    @Override
+    public List<ServerSystemInfoDO> list(ServerSystemReqVO reqVO) {
+
+        LambdaQueryWrapper<ServerSystemInfoDO> qw = new LambdaQueryWrapper<>();
+        qw.eq(ServerSystemInfoDO::getServerId, reqVO.getServerId());
+        return serverSystemInfoMapper.selectList(qw);
     }
 }
