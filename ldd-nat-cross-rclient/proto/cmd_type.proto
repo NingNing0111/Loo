@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package cmd_type;
+
+// 传输数据的指令类型
+enum CmdType {
+    ///// 通用
+    HEARTBEAT = 0; // 心跳检测
+    AUTH = 1; // 认证
+    AUTH_OK = 2; // 认证通过
+    AUTH_ERR = 3; // 认证失败
+    CONNECT = 4; // 连接
+    DISCONNECT = 5; // 断开连接
+    TRANSFER = 6; // 数据传输
+    OPEN_SERVER = 7; // 开启代理端口
+    CLOSE_SERVER = 8; // 关闭代理端口
+}

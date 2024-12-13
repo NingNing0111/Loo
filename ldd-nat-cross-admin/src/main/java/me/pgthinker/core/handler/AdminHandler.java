@@ -84,7 +84,7 @@ public class AdminHandler extends SimpleChannelInboundHandler<TransferDataMessag
         Map<String, String> metaData = data.getMetaDataMap();
         String serverName = metaData.get(AdminConstants.SERVER_NAME);
         AdminManager.registerServer(serverName,serverCtx);
-        this.serverInfoService.addServerInfo(serverCtx.channel().id().asLongText(),metaData);
+        this.serverInfoService.addServerInfo(serverCtx,metaData);
     }
 
     private void handleTransfer(ChannelHandlerContext serverCtx, TransferDataMessage msg) {

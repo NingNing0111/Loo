@@ -11,7 +11,10 @@ CREATE TABLE `server_info`(
     os_name VARCHAR(64) COMMENT '服务端操作系统名称',
     os_arch VARCHAR(128) COMMENT '操作系统架构',
     os_version VARCHAR(64) COMMENT 'OS版本',
-    register_time DATETIME COMMENT '注册时间'
+    register_time DATETIME COMMENT '注册时间',
+    ip VARCHAR(15) COMMENT 'ip地址',
+    hostname varchar(256) COMMENT 'hostname',
+    port INT COMMENT '端口'
 );
 
 DROP TABLE IF EXISTS `server_system_info`;

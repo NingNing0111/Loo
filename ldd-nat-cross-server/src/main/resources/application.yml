@@ -1,10 +1,10 @@
 server:
   port: 8964
   password: 123456
-#  msg-log-range: auth, transfer, open_server
+  msg-log-range: auth
 
 admin:
-  enabled: true
+  enabled: false
   hostname: localhost
   port: 7990
 

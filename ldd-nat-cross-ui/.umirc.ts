@@ -21,10 +21,25 @@ export default defineConfig({
       redirect: '/home',
     },
     {
-      name: '系统面板',
+      name: '服务列表',
       path: '/home',
       component: './Home',
       access: 'canAccess',
+      routes: [
+        {
+          path: '/home/:serverName',
+          component: './Server',
+          hideInMenu: true,
+          // 不展示菜单顶栏
+          menuHeaderRender: false,
+          // 不展示顶栏
+          headerRender: false,
+          // 不展示页脚
+          footerRender: false,
+          // 不展示菜单
+          menuRender: false,
+        },
+      ],
     },
     {
       path: '/login',

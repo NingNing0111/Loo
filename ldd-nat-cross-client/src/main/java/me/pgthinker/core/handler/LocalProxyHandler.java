@@ -55,6 +55,7 @@ public class LocalProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
         TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(metaData, byteBuf);
         serverChannelCtx.writeAndFlush(transferDataMessage);
+
     }
 
     @Override

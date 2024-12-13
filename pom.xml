@@ -33,6 +33,7 @@
         <commons.cli.version>1.5.0</commons.cli.version>
         <commons.lang.version>2.6</commons.lang.version>
         <mybatis.plus.version>3.5.9</mybatis.plus.version>
+        <mybatis.version>3.0.3</mybatis.version>
         <jwt.version>0.11.5</jwt.version>
         <knife4j.version>4.4.0</knife4j.version>
     </properties>
@@ -98,6 +99,22 @@
                 <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
                 <version>${knife4j.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${mybatis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis.plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
+                <version>${mybatis.plus.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

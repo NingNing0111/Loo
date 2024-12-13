@@ -1,4 +1,4 @@
-import { list1 } from '@/services/serverInfoController';
+import { serverList } from '@/services/serverInfoController';
 import { ProjectOutlined, RedoOutlined } from '@ant-design/icons';
 import {
   PageContainer,
@@ -16,8 +16,10 @@ const HomePage: React.FC = () => {
   const loadServers = async () => {
     setLoading(true);
     try {
-      const res = await list1();
-      setServers(res);
+      const res = await serverList();
+      if (res) {
+        setServers(res);
+      }
     } catch (e) {
       setServers([]);
     } finally {
@@ -54,10 +56,14 @@ const HomePage: React.FC = () => {
           className="card"
           key={item.id}
           bordered
-          extra={<ProjectOutlined onClick={serverDetail} />}
+          extra={
+            <Button icon={<ProjectOutlined />} onClick={serverDetail}>
+              查看详情
+            </Button>
+          }
         >
           <ProDescriptions column={3}>
-            <ProDescriptions.Item label="服务名称：">
+            <ProDescriptions.Item label="服务名称">
               {item.serverName}
             </ProDescriptions.Item>
             <ProDescriptions.Item
@@ -84,13 +90,22 @@ const HomePage: React.FC = () => {
             >
               {item.isLive}
             </ProDescriptions.Item>
-            <ProDescriptions.Item label="操作系统名称：">
+            <ProDescriptions.Item label="接入IP" copyable>
+              {item.ip}
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="端口">
+              {item.port}
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="接入主机" copyable>
+              {item.hostname}
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="操作系统名称">
               {item.osName}
             </ProDescriptions.Item>
-            <ProDescriptions.Item label="操作系统版本：">
+            <ProDescriptions.Item label="操作系统版本">
               {item.osVersion}
             </ProDescriptions.Item>
-            <ProDescriptions.Item label="操作系统架构：">
+            <ProDescriptions.Item label="操作系统架构">
               {item.osArch}
             </ProDescriptions.Item>
           </ProDescriptions>

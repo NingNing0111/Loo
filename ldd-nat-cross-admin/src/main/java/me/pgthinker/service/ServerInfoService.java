@@ -1,7 +1,10 @@
 package me.pgthinker.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.netty.channel.ChannelHandlerContext;
 import me.pgthinker.model.entity.ServerInfoDO;
 import me.pgthinker.model.vo.ServerInfoVO;
+import org.springdoc.core.converters.models.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -15,9 +18,10 @@ import java.util.Map;
  */
 public interface ServerInfoService {
 
-    void addServerInfo(String serverId, Map<String, String> serverInfo);
+    void addServerInfo(ChannelHandlerContext ctx, Map<String, String> serverInfo);
 
     List<ServerInfoVO> list();
 
+    Page<ServerInfoVO> historyList(ServerInfoVO serverInfoVO, Integer page, Integer pageSize);
 
 }

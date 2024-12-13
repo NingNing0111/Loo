@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package transfer_message;
+
+import "cmd_type.proto";
+import "meta_data.proto";
+
+// 传输数据的消息定义
+message TransferDataMessage {
+  cmd_type.CmdType cmdType = 1;
+  meta_data.TransferMessageMetaData metaData = 2;
+  bytes data = 3;
+}

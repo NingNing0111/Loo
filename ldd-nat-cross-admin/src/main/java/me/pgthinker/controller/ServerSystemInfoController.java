@@ -29,9 +29,8 @@ public class ServerSystemInfoController {
 
     @GetMapping("/list")
     @PreAuthorize("hasAnyAuthority('admin')")
-    public BaseResponse<List<ServerSystemInfoDO>> list(ServerSystemReqVO reqVO) {
+    public BaseResponse<List<ServerSystemInfoDO>> serverSystemInfoList(ServerSystemReqVO reqVO) {
         List<ServerSystemInfoDO> resp = serverSystemInfoService.list(reqVO);
-
         return ResultUtils.success(resp);
     }
 }

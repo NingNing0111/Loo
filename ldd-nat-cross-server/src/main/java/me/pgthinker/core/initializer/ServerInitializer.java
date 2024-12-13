@@ -37,13 +37,13 @@ public class ServerInitializer extends ChannelInitializer<NioSocketChannel> {
         ChannelPipeline pipeline = nioSocketChannel.pipeline();
 
         pipeline.addLast(new IdleStateHandler(5,0,0, TimeUnit.SECONDS));
+
         pipeline.addLast(new ProtobufVarint32FrameDecoder());
         pipeline.addLast(new ProtobufDecoder(TransferDataMessageProto.TransferDataMessage.getDefaultInstance()));
         pipeline.addLast(new ProtobufVarint32LengthFieldPrepender());
         pipeline.addLast(new ProtobufEncoder());
         // 服务端的处理器
         pipeline.addLast(new ServerHandler(tcpServer));
-//        pipeline.addLast(new ServerIdleStateTrigger());
 
     }
 }

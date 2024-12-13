@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package meta_data;
+
+import "google/protobuf/timestamp.proto"; // 导入时间戳消息
+
+// 传输数据的消息定义
+message TransferMessageMetaData {
+  google.protobuf.Timestamp timestamp = 1; // 时间戳
+  map<string,string> metaData = 2; // 元数据
+}

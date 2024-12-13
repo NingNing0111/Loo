@@ -27,6 +27,9 @@ public class ServerInfoDO implements Serializable {
     private String osArch;
     private String osVersion;
     private LocalDateTime registerTime;
+    private String ip;
+    private String hostname;
+    private Integer port;
 
 
     @TableField(exist = false)

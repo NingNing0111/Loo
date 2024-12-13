@@ -6,9 +6,7 @@ import me.pgthinker.common.ResultUtils;
 import me.pgthinker.model.vo.ServerInfoVO;
 import me.pgthinker.service.ServerInfoService;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,8 +25,14 @@ public class ServerInfoController {
 
     @GetMapping("/list")
     @PreAuthorize("hasAnyAuthority('admin')")
-    public BaseResponse<List<ServerInfoVO>> list(){
+    public BaseResponse<List<ServerInfoVO>> serverList(){
         List<ServerInfoVO> vo = serverInfoService.list();
         return ResultUtils.success(vo);
+    }
+
+    @GetMapping("/historyList")
+    @PreAuthorize("hasAnyAuthority('admin')")
+    public BaseResponse historyList(ServerInfoVO serverInfoVO, @RequestParam Integer page, @RequestParam Integer pageSize){
+        return ResultUtils.success(serverInfoService.historyList(serverInfoVO, page, pageSize));
     }
 }

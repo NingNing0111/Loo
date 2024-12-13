@@ -1,0 +1,25 @@
+[package]
+name = "ldd-nat-cross-rclient"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# network
+tokio = { version = "1.41.1", features = ["full"] }
+# protobuf
+prost = "0.13"
+prost-types = "0.13"
+# config
+config = "0.14.0"
+clap = { version = "4.5.21", features = ["derive"] }
+once_cell = "1.20.2"
+envy = "0.4.2"
+dotenv = "0.15.0"
+eyre = "0.6.12"
+serde_yaml = "0.9.34"
+serde = { version = "1.0.216", features = ["derive"] }
+tokio-util = { version = "0.7.13", features = ["codec"] }
+bytes = "1.9.0"
+
+[build-dependencies]
+prost-build = { version = "0.13" }

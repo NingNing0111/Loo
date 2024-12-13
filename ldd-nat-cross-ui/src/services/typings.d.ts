@@ -4,6 +4,12 @@ declare namespace API {
     password?: string;
   };
 
+  type BaseResponse = {
+    code?: number;
+    data?: Record<string, any>;
+    message?: string;
+  };
+
   type BaseResponseListServerInfoVO = {
     code?: number;
     data?: ServerInfoVO[];
@@ -22,8 +28,10 @@ declare namespace API {
     message?: string;
   };
 
-  type listParams = {
-    arg0: ServerSystemReqVO;
+  type historyListParams = {
+    arg0: ServerInfoVO;
+    arg1: number;
+    arg2: number;
   };
 
   type LoginUserVO = {
@@ -41,6 +49,9 @@ declare namespace API {
     osArch?: string;
     osVersion?: string;
     registerTime?: string;
+    ip?: string;
+    hostname?: string;
+    port?: number;
     isLive?: boolean;
   };
 
@@ -52,6 +63,10 @@ declare namespace API {
     usableMemory?: number;
     freeMemory?: number;
     registerTime?: string;
+  };
+
+  type serverSystemInfoListParams = {
+    arg0: ServerSystemReqVO;
   };
 
   type ServerSystemReqVO = {
