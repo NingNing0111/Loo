@@ -20,6 +20,7 @@ serde_yaml = "0.9.34"
 serde = { version = "1.0.216", features = ["derive"] }
 tokio-util = { version = "0.7.13", features = ["codec"] }
 bytes = "1.9.0"
+chrono = "0.4.39"
 
 [build-dependencies]
 prost-build = { version = "0.13" }

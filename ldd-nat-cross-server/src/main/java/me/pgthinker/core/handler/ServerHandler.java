@@ -60,7 +60,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<TransferDataMessa
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("\nClient try connect fail... Error message:{} ", cause.getMessage());
+        log.error("\n {} Client try connect fail... Error message:{} ", System.currentTimeMillis() ,cause.getMessage());
         cause.printStackTrace();
         ctx.close();
     }
