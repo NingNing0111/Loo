@@ -1,13 +1,18 @@
 use bytes::BytesMut;
+use ldd_nat_cross_rclient::client::client::ClientManager;
 use ldd_nat_cross_rclient::common::constants::LICENSE_KEY;
 use ldd_nat_cross_rclient::config::arg::get_args;
 use ldd_nat_cross_rclient::config::client::{get_config, ClientConfig};
 use ldd_nat_cross_rclient::config::log::init_log;
 use ldd_nat_cross_rclient::core::cmd_type::CmdType;
-use ldd_nat_cross_rclient::handler::handler_ok;
+use ldd_nat_cross_rclient::core::transfer_message::TransferDataMessage;
+use ldd_nat_cross_rclient::handler::{
+    handler_connect, handler_disconnect, handler_ok, handler_transfer,
+};
 use ldd_nat_cross_rclient::helper;
 use ldd_nat_cross_rclient::net::tcp_connect::TcpConnect;
 use log::{error, info};
+use prost::Message;
 use std::error::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -41,6 +46,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // 接收响应数据
     let mut read_buf = BytesMut::with_capacity(1024);
     let mut tmp_buf = [0u8; 1024];
+    let mut client_manager = ClientManager::new();
 
     loop {
         // 读取数据到缓冲区
@@ -50,9 +56,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             break;
         }
         read_buf.extend_from_slice(&tmp_buf[..n]);
-
         let received_msg =
             helper::decode::decode_message(&mut read_buf).expect("decode_message fail!");
+        info!("received_msg:{:?}", received_msg);
 
         let cmd_type = received_msg.cmd_type();
         match cmd_type {
@@ -73,10 +79,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 );
                 break;
             }
-            CmdType::Transfer => {}
-            CmdType::Connect => {}
-            CmdType::Disconnect => {}
-            _ => {}
+            CmdType::Transfer => {
+                handler_transfer(&received_msg, &mut client_manager, &mut tcp_stream).await?;
+            }
+            CmdType::Connect => {
+                handler_connect(&mut tcp_stream, &received_msg, &mut client_manager).await?;
+            }
+            CmdType::Disconnect => {
+                handler_disconnect(&received_msg, &mut client_manager).await?;
+            }
+            _ => {
+                error!("unknow message:{:?}", received_msg);
+                break;
+            }
         }
     }
 

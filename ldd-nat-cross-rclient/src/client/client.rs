@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
-use tokio::net::TcpStream;
+use tokio::{net::TcpStream, sync::Mutex};
 
 pub struct Client;
 
 pub struct ClientManager {
-    proxy_channel: HashMap<String, TcpStream>,
+    proxy_channel: HashMap<String, Arc<Mutex<TcpStream>>>,
 }
 
 impl ClientManager {
@@ -16,15 +16,15 @@ impl ClientManager {
     }
 
     pub fn set_local_proxy_channel(&mut self, visitor: String, tcp_stream: TcpStream) {
-        self.proxy_channel.insert(visitor, tcp_stream);
+        self.proxy_channel
+            .insert(visitor, Arc::new(Mutex::new(tcp_stream)));
     }
 
-    pub fn get_local_proxy_channel(&mut self, visitor: String) -> Option<&TcpStream> {
-        let channels = &self.proxy_channel;
-        channels.get(&visitor)
+    pub fn get_local_proxy_channel(&mut self, visitor: &str) -> Option<Arc<Mutex<TcpStream>>> {
+        self.proxy_channel.get(visitor).cloned()
     }
 
-    pub fn remove_local_proxy_channel(&mut self, visitor: String) -> Option<TcpStream> {
+    pub fn remove_local_proxy_channel(&mut self, visitor: String) -> Option<Arc<Mutex<TcpStream>>> {
         self.proxy_channel.remove(&visitor)
     }
 }
