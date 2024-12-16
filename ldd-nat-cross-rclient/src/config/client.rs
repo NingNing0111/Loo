@@ -4,7 +4,9 @@ use std::fs;
 
 use crate::model::proxy::ProxyConfig;
 
-#[derive(Debug, Deserialize)]
+use super::log::LogConfig;
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct ClientConfig {
     proxies: Vec<ProxyConfig>,
     #[serde(rename = "serverHost")]
@@ -46,14 +48,29 @@ impl ClientConfig {
 }
 
 #[derive(Debug, Deserialize)]
-struct ConfigWrapper {
+pub struct ConfigWrapper {
     client: ClientConfig,
+    #[serde(default = "default_log_config")]
+    log: LogConfig,
 }
 
-pub fn load_config(file_path: &str) -> Result<ClientConfig, Box<dyn Error>> {
+fn default_log_config() -> LogConfig {
+    LogConfig::new("error.log".to_string(), "client.log".to_string())
+}
+
+impl ConfigWrapper {
+    pub fn get_client_config(&self) -> &ClientConfig {
+        &self.client
+    }
+    pub fn get_log_config(&self) -> &LogConfig {
+        &self.log
+    }
+}
+
+pub fn get_config(file_path: &str) -> Result<ConfigWrapper, Box<dyn Error>> {
     // 读取文件内容
     let yaml_content = fs::read_to_string(file_path)?;
     // 反序列化 YAML 内容
     let config_wrapper: ConfigWrapper = serde_yaml::from_str(&yaml_content)?;
-    Ok(config_wrapper.client)
+    Ok(config_wrapper)
 }

@@ -16,7 +16,7 @@ impl Args {
     }
 }
 
-pub fn load_args() -> Args {
+pub fn get_args() -> Args {
     let args = Args::parse();
     return args;
 }

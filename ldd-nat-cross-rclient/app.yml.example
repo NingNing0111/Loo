@@ -1,0 +1,9 @@
+client:
+  serverHost: localhost
+  serverPort: 8964
+  password: 123456
+  proxies:
+    - host: localhost
+      port: 9011
+      protocol: tcp
+      openPort: 8891

@@ -1,46 +1,43 @@
 use bytes::BytesMut;
 use ldd_nat_cross_rclient::common::constants::LICENSE_KEY;
-use ldd_nat_cross_rclient::config::client::load_config;
-use ldd_nat_cross_rclient::core::cmd_type::{self, CmdType};
-use ldd_nat_cross_rclient::core::transfer_message::TransferDataMessage;
-use ldd_nat_cross_rclient::helper::{build_auth_message, decode_varint};
+use ldd_nat_cross_rclient::config::arg::get_args;
+use ldd_nat_cross_rclient::config::client::{get_config, ClientConfig};
+use ldd_nat_cross_rclient::config::log::init_log;
+use ldd_nat_cross_rclient::core::cmd_type::CmdType;
+use ldd_nat_cross_rclient::handler::handler_ok;
+use ldd_nat_cross_rclient::helper;
 use ldd_nat_cross_rclient::net::tcp_connect::TcpConnect;
-use ldd_nat_cross_rclient::{config::arg::load_args, helper::encode_varint};
-use prost::Message;
+use log::{error, info};
 use std::error::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let args = load_args();
+    let args = get_args();
     let config_file_path = args.get_config_path();
-    let client_config = load_config(config_file_path)?;
+    let all_config = get_config(config_file_path).expect("parse config file fail!");
+    let client_config = all_config.get_client_config();
+    let log_config = all_config.get_log_config();
+    init_log(log_config).expect("init log config fail!");
+
+    let server_hostname = format!(
+        "{}:{}",
+        client_config.get_server_host(),
+        client_config.get_server_port()
+    );
     let mut tcp_stream = TcpConnect::new(
         client_config.get_server_host(),
         client_config.get_server_port(),
     )
     .connect()
     .await?;
-    let server_hostname = format!(
-        "{}/{}",
-        client_config.get_server_host(),
-        client_config.get_server_port()
-    );
 
-    // 认证
-    let auth_message = build_auth_message(client_config.get_password());
-    let mut message_buf = BytesMut::new();
-    auth_message.encode(&mut message_buf)?;
+    // 发送 认证消息
+    send_auth_message(&mut tcp_stream, &client_config)
+        .await
+        .expect("send auth message error!");
 
-    let length_prefix = encode_varint(message_buf.len() as u32);
-    // 创建一个新的缓冲区，将 length_prefix 和 auth_message 合并
-    let mut combined_buf = BytesMut::new();
-    combined_buf.extend_from_slice(&length_prefix); // 先写入长度前缀
-    combined_buf.extend_from_slice(&message_buf); // 再写入消息内容
-
-    // // 将合并后的缓冲区写入 TCP 流
-    tcp_stream.write_all(&combined_buf).await?;
-    tcp_stream.flush().await?;
     // 接收响应数据
     let mut read_buf = BytesMut::with_capacity(1024);
     let mut tmp_buf = [0u8; 1024];
@@ -49,40 +46,55 @@ async fn main() -> Result<(), Box<dyn Error>> {
         // 读取数据到缓冲区
         let n = tcp_stream.read(&mut tmp_buf).await?;
         if n == 0 {
-            println!("Connection closed by server.");
+            info!("Connection closed by server.");
             break;
         }
         read_buf.extend_from_slice(&tmp_buf[..n]);
-        // 尝试解码消息
-        if let Some((msg_len, mut remaining)) = decode_varint(&mut read_buf) {
-            if remaining.len() >= msg_len as usize {
-                let msg_bytes = remaining.split_to(msg_len as usize);
-                let received_msg = TransferDataMessage::decode(&msg_bytes[..])?;
-                println!("Received message: {:?}", received_msg);
-                let cmd_type = received_msg.cmd_type();
-                match cmd_type {
-                    CmdType::AuthOk => {
-                        let license_key = received_msg
-                            .meta_data
-                            .unwrap()
-                            .meta_data
-                            .get(LICENSE_KEY)
-                            .unwrap()
-                            .clone();
-                        println!("{}", license_key);
-                    }
-                    CmdType::AuthErr => {
-                        let err_msg = format!("AuthenticationException: Failed to authenticate from server. Server info: {}", server_hostname);
-                        panic!("{}", err_msg);
-                    }
-                    CmdType::Transfer => {}
-                    CmdType::Connect => {}
-                    CmdType::Disconnect => {}
-                    _ => {}
-                }
+
+        let received_msg =
+            helper::decode::decode_message(&mut read_buf).expect("decode_message fail!");
+
+        let cmd_type = received_msg.cmd_type();
+        match cmd_type {
+            CmdType::AuthOk => {
+                info!(
+                    "connected to server successful! server address:{}",
+                    server_hostname
+                );
+
+                let meta_data = received_msg.clone().meta_data.unwrap();
+                let license_key = meta_data.meta_data.get(LICENSE_KEY).unwrap().as_str();
+                handler_ok(&mut tcp_stream, license_key, &client_config).await?;
             }
+            CmdType::AuthErr => {
+                error!(
+                    "AuthenticationException: Failed to authenticate from server. Server info: {}",
+                    server_hostname
+                );
+                break;
+            }
+            CmdType::Transfer => {}
+            CmdType::Connect => {}
+            CmdType::Disconnect => {}
+            _ => {}
         }
     }
 
+    Ok(())
+}
+
+/// 发送认证消息
+///
+/// # 参数
+/// - `tcp_stream`: TCP连接通道;
+/// - `client_config`: 客户端配置，主要是通过这个获取 password;
+async fn send_auth_message(
+    tcp_stream: &mut TcpStream,
+    client_config: &ClientConfig,
+) -> Result<(), Box<dyn Error>> {
+    let auth_message = helper::message::build_auth_message(client_config.get_password());
+    let auth_message = helper::encode::encode_message(auth_message)?;
+    tcp_stream.write_all(&auth_message).await?;
+    tcp_stream.flush().await?;
     Ok(())
 }

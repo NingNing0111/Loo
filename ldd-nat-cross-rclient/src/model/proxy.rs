@@ -4,7 +4,7 @@ use crate::common::constants;
 use crate::model::protocol::ProtocolEnum;
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ProxyConfig {
     host: String,
     port: i32,
