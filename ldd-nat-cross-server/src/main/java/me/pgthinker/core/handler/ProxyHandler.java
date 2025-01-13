@@ -84,7 +84,6 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
                     TransferDataMessage message;
                     message = transferDataMessageHelper.buildConnectMessage(proxyConfig, visitorId);
-                    log.info("message:{}", message);
                     clientCtx.writeAndFlush(message);
                 });
 

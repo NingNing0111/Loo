@@ -1,9 +1,9 @@
 client:
-  serverHost: localhost
-  serverPort: 8964
-  password: 123456
-  proxies:
-    - host: localhost
-      port: 9011
-      protocol: tcp
-      openPort: 8891
+  serverHost: localhost # 服务端Host
+  serverPort: 8964 # 服务端端口
+  password: 123456 # 认证密码
+  proxies: # 本地代理穿透列表
+    - host: localhost # 本地代理穿透IP/host
+      port: 9011 # 本地代理端口
+      protocol: tcp # 本地代理协议
+      openPort: 8891 # 服务端开放的访问端口

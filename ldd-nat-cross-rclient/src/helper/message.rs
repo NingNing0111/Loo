@@ -27,7 +27,7 @@ pub fn build_auth_message(password: &str) -> TransferDataMessage {
 }
 
 pub fn build_open_server_message(
-    proxy_config: ProxyConfig,
+    proxy_config: &ProxyConfig,
     license_key: String,
 ) -> TransferDataMessage {
     let mut meta_map = proxy_config.to_map();

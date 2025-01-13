@@ -26,11 +26,6 @@ pub fn encode_varint(mut value: u32) -> Vec<u8> {
 /// 一个BytesMut，可以直接写入到连接通道中
 pub fn encode_message(message: TransferDataMessage) -> Result<BytesMut, Box<dyn Error>> {
     let mut message_buf = BytesMut::new();
-    message.encode(&mut message_buf)?;
-
-    let mut combined_buf = BytesMut::new();
-    let length_prefix = encode_varint(message_buf.len() as u32);
-    combined_buf.extend_from_slice(&length_prefix); // 先写入长度前缀
-    combined_buf.extend_from_slice(&message_buf); // 再写入消息内容
-    return Ok(combined_buf);
+    message.encode_length_delimited(&mut message_buf)?;
+    Ok(message_buf)
 }

@@ -5,14 +5,9 @@ use ldd_nat_cross_rclient::config::arg::get_args;
 use ldd_nat_cross_rclient::config::client::{get_config, ClientConfig};
 use ldd_nat_cross_rclient::config::log::init_log;
 use ldd_nat_cross_rclient::core::cmd_type::CmdType;
-use ldd_nat_cross_rclient::core::transfer_message::TransferDataMessage;
-use ldd_nat_cross_rclient::handler::{
-    handler_connect, handler_disconnect, handler_ok, handler_transfer,
-};
 use ldd_nat_cross_rclient::helper;
 use ldd_nat_cross_rclient::net::tcp_connect::TcpConnect;
 use log::{error, info};
-use prost::Message;
 use std::error::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -44,22 +39,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .expect("send auth message error!");
 
     // 接收响应数据
-    let mut read_buf = BytesMut::with_capacity(1024);
-    let mut tmp_buf = [0u8; 1024];
+
     let mut client_manager = ClientManager::new();
 
     loop {
+        let mut tmp_buf = [0u8; 1024 * 4];
         // 读取数据到缓冲区
         let n = tcp_stream.read(&mut tmp_buf).await?;
         if n == 0 {
             info!("Connection closed by server.");
             break;
         }
+
+        let mut read_buf = BytesMut::with_capacity(1024 * 4);
         read_buf.extend_from_slice(&tmp_buf[..n]);
         let received_msg =
             helper::decode::decode_message(&mut read_buf).expect("decode_message fail!");
-        info!("received_msg:{:?}", received_msg);
-
         let cmd_type = received_msg.cmd_type();
         match cmd_type {
             CmdType::AuthOk => {
@@ -67,10 +62,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "connected to server successful! server address:{}",
                     server_hostname
                 );
-
                 let meta_data = received_msg.clone().meta_data.unwrap();
                 let license_key = meta_data.meta_data.get(LICENSE_KEY).unwrap().as_str();
-                handler_ok(&mut tcp_stream, license_key, &client_config).await?;
             }
             CmdType::AuthErr => {
                 error!(
@@ -79,15 +72,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 );
                 break;
             }
-            CmdType::Transfer => {
-                handler_transfer(&received_msg, &mut client_manager, &mut tcp_stream).await?;
-            }
-            CmdType::Connect => {
-                handler_connect(&mut tcp_stream, &received_msg, &mut client_manager).await?;
-            }
-            CmdType::Disconnect => {
-                handler_disconnect(&received_msg, &mut client_manager).await?;
-            }
+            CmdType::Transfer => {}
+            CmdType::Connect => {}
+            CmdType::Disconnect => {}
             _ => {
                 error!("unknow message:{:?}", received_msg);
                 break;
