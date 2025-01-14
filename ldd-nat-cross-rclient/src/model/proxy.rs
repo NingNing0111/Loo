@@ -52,7 +52,7 @@ impl ProxyConfig {
         data
     }
 
-    pub fn from_map(data: &HashMap<String, String>) -> Option<Self> {
+    pub fn from_map(data: HashMap<String, String>) -> Option<Self> {
         let host = data.get(constants::PROXY_HOST)?.to_string();
         let port = data.get(constants::PROXY_PORT)?.parse().ok()?;
         let protocol = ProtocolEnum::of(data.get(constants::PROXY_PROTOCOL)?.as_str())?;

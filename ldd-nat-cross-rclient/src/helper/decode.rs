@@ -1,6 +1,6 @@
 use bytes::BytesMut;
-use prost::{DecodeError, Message};
-use std::{error::Error, fs::read};
+use prost::Message;
+use std::error::Error;
 
 use crate::core::transfer_message::TransferDataMessage;
 

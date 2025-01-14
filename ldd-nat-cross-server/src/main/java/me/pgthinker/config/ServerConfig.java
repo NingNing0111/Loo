@@ -34,6 +34,7 @@ public class ServerConfig {
     private Integer writeIdleTime = 40;
     private Integer userChannelReadIdleTime = 0;
     private List<CmdType> msgLogRange = Collections.emptyList();
+    private boolean isAllLog = false;
 
     /**
      * 密码加密不允许set覆盖

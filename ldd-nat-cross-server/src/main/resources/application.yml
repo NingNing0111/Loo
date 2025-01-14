@@ -1,7 +1,9 @@
 server:
   port: 8964
   password: 123456
-  msg-log-range: connect,disconnect
+
+#  msg-log-range: transfer
+  all-log: true
 
 admin:
   enabled: false

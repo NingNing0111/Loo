@@ -1,27 +1,29 @@
 use std::error::Error;
+use std::sync::Arc;
 
+use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
+use tokio::sync::Mutex;
 
+#[derive(Debug, Clone)]
 pub struct TcpConnect {
-    host: String,
-    port: i32,
+    stream: Arc<Mutex<TcpStream>>,
 }
 
 impl TcpConnect {
-    pub fn new(host: &str, port: i32) -> Self {
-        let host = String::from(host);
-        Self { host, port }
-    }
-    pub async fn connect(&self) -> Result<TcpStream, Box<dyn Error>> {
-        let add = format!("{}:{}", &self.host, self.port);
-        let tcp_stream = TcpStream::connect(add.as_str()).await?;
-        Ok(tcp_stream)
-    }
-    pub fn get_host(&self) -> String {
-        self.host.clone()
+    pub async fn connect(host: &str, port: i32) -> Result<Self, Box<dyn Error>> {
+        let stream = TcpStream::connect(format!("{}:{}", host, port)).await?;
+        Ok(Self {
+            stream: Arc::new(Mutex::new(stream)),
+        })
     }
 
-    pub fn get_port(&self) -> i32 {
-        self.port
+    pub fn stream(&self) -> Arc<Mutex<TcpStream>> {
+        self.stream.clone()
+    }
+
+    pub async fn shutdown(&self) -> Result<(), Box<dyn Error>> {
+        self.stream.lock().await.shutdown().await?;
+        Ok(())
     }
 }

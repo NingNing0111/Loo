@@ -70,8 +70,8 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
         switch (cmdType){
             case AUTH_ERR -> handleAuthErr();
             case AUTH_OK -> handleAuthOk(transferDataMessage);
-            case TRANSFER -> handleTransfer(transferDataMessage);
             case CONNECT -> handleConnect(transferDataMessage);
+            case TRANSFER -> handleTransfer(transferDataMessage);
             case DISCONNECT -> handleDisconnect(transferDataMessage);
         }
     }

@@ -4,6 +4,6 @@ client:
   password: 123456
   proxies:
     - host: localhost
-      port: 9011
+      port: 3306
       protocol: tcp
-      openPort: 8891
+      openPort: 9011

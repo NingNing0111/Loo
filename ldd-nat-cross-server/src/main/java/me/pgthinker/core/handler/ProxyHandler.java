@@ -113,6 +113,7 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     String licenseKey = metaData.get(Constants.LICENSE_KEY);
                     TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
                     TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(data, byteBuf);
+                    log.info("transferDataMessage:{}", transferDataMessage);
                     clientCtx.writeAndFlush(transferDataMessage);
                 });
             }else{

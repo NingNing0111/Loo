@@ -3,11 +3,11 @@ client:
   serverPort: 8964
   password: 123456
   proxies:
-#    - host: localhost
-#      port: 4456
-#      protocol: tcp
-#      openPort: 8890
     - host: localhost
-      port: 9011
+      port: 6379
       protocol: tcp
-      openPort: 8891
+      openPort: 9012
+    - host: localhost
+      port: 3306
+      protocol: tcp
+      openPort: 9011

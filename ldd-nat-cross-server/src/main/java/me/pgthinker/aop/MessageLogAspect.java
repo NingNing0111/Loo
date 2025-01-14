@@ -54,7 +54,9 @@ public class MessageLogAspect {
         TransferDataMessage dataMessage = (TransferDataMessage)args[1];
         CmdType cmdType = dataMessage.getCmdType();
         List<CmdType> msgLogRange = serverConfig.getMsgLogRange();
-        if(msgLogRange.contains(cmdType)){
+        if(serverConfig.isAllLog()) {
+            printAllLog(ctx, dataMessage);
+        }else if(msgLogRange.contains(cmdType)){
             switch (cmdType) {
                 case AUTH -> printAuthLog(ctx,dataMessage);
                 case OPEN_SERVER -> printOpenServerLog(ctx,dataMessage);
@@ -64,12 +66,18 @@ public class MessageLogAspect {
         return joinPoint.proceed();
     }
 
+    private void printAllLog(ChannelHandlerContext ctx, TransferDataMessage dataMessage) {
+        InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
+        String hostString = inetSocketAddress.getHostString();
+        logger.info("\nclient:{} -------> message:{} ", hostString,dataMessage);
+    }
 
     private void printAuthLog(ChannelHandlerContext ctx,TransferDataMessage dataMessage) {
         InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
         String hostString = inetSocketAddress.getHostString();
         String password = dataMessage.getMetaData().getMetaDataMap().get(Constants.AUTH_PASSWORD);
         logger.info("\nclient:{} -------> CmdType:{} password:{}", hostString,dataMessage.getCmdType(), password);
+
     }
 
     private void printOpenServerLog(ChannelHandlerContext ctx,TransferDataMessage dataMessage) {
@@ -85,7 +93,7 @@ public class MessageLogAspect {
         String hostString = inetSocketAddress.getHostString();
         String dataStr = dataMessage.getData().toString(Charset.defaultCharset());
         Map<String, String> stringStringMap = HttpResponseUtil.parseMap(dataStr);
-        logger.info("\nClient:{} -------> CmdTyp:{} \n", hostString, dataMessage.getCmdType());
+        logger.info("\nClient:{} -------> CmdTyp:{} data:{} \n", hostString, dataMessage.getCmdType(), dataStr);
         if(stringStringMap.containsKey("Content-Type")){
             logger.info("content-type:{} data:{}", stringStringMap.get("Content-Type"), stringStringMap.get("Response-Body"));
         }
