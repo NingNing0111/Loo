@@ -48,6 +48,7 @@ public class AuthMessageAspect {
 
         String licenseKey = metaDataMap.get(Constants.LICENSE_KEY);
         List<String> licenseKeyList = serverManager.getLicenseKeyList();
+        // 未知、无效的授权码 断开连接
         if(!licenseKeyList.contains(licenseKey)){
             ctx.close();
             logger.error("AUTH_ERROR!");

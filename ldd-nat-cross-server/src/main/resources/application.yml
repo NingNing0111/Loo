@@ -1,13 +1,13 @@
 server:
   port: 8964
-  password: 123456
+  password: 123456 # 服务端认证密码
+#  msg-log-range: transfer,disconnect,open_server,auth # 指定某个范围的日志
+  all-log: true # 打开所有日志
 
-#  msg-log-range: transfer
-  all-log: true
-
+# 管理端配置
 admin:
-  enabled: false
-  hostname: localhost
+  enabled: false # 是否接入Admin端
+  hostname: localhost # Admin端信息
   port: 7990
 
 

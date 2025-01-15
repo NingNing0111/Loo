@@ -3,6 +3,7 @@ use log::{error, info};
 use std::error::Error;
 use std::{collections::HashMap, sync::Arc};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
 use tokio::select;
 use tokio::sync::RwLock;
 
@@ -42,13 +43,7 @@ impl Client {
     /// 启动客户端
     pub async fn start(&mut self) -> Result<(), Box<dyn Error>> {
         // 连接到服务器
-        self.server_connect = Some(
-            TcpConnect::connect(
-                self.client_config.get_server_host(),
-                self.client_config.get_server_port(),
-            )
-            .await?,
-        );
+        let tcp_connect = TcpConnect::new(self.client_config.get_server_host(),self.client_config.get_server_port()).await;
 
         // 发送认证消息
         let auth_message = build_auth_message(self.client_config.get_password());
@@ -57,7 +52,7 @@ impl Client {
         loop {
             // stop client
             if *self.shutdown_signal.read().await {
-                self.server_connect.as_ref().unwrap().shutdown().await?;
+                self.server_connect.shutdown().await?;
                 info!("client stop successful!");
                 break;
             }
@@ -96,10 +91,12 @@ impl Client {
     }
 
     /// 读取server端消息
-    async fn read_message(&self) -> Result<TransferDataMessage, Box<dyn Error>> {
+    async fn read_message(
+        server_connect: TcpConnect,
+    ) -> Result<TransferDataMessage, Box<dyn Error>> {
         let mut tmp_buf = [0u8; 1024 * 4];
         // 读取数据到缓冲区
-        let mut stream = self.server_connect.as_ref().unwrap().stream().lock().await;
+        let mut stream = server_connect.stream();
 
         let n = stream.read(&mut tmp_buf).await?;
         if n == 0 {

@@ -100,6 +100,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
     private void handleAuthOk (TransferDataMessage transferDataMessage) {
         Map<String, String> metaData = transferDataMessage.getMetaData().getMetaDataMap();
         String licenseKey = metaData.get(Constants.LICENSE_KEY);
+        log.info("connected successfully. licenseKey: {}", licenseKey);
         TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
         // 请求服务端开放端口 启动用于访问的Server
         List<ProxyConfig> proxies = clientConfig.getProxies();

@@ -1,9 +1,8 @@
-use std::error::Error;
-
 use ldd_nat_cross_rclient::{
     client::client::Client,
     config::{arg::get_args, client::get_config, log::init_log},
 };
+use std::error::Error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

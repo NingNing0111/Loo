@@ -13,6 +13,6 @@ public class AuthenticationException extends RuntimeException{
     }
 
     public AuthenticationException(String ip, Integer port) {
-        super("AuthenticationException: Failed to authenticate from server. Server info" + ip + "/" + port);
+        super("AuthenticationException: Failed to authenticate from server. Server info:[" + ip + "/" + port + "]");
     }
 }
