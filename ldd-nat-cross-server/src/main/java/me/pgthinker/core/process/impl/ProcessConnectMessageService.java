@@ -6,6 +6,7 @@ import io.netty.channel.ChannelOption;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.annotation.AuthMessage;
+import me.pgthinker.annotation.MessageLog;
 import me.pgthinker.common.Constants;
 import me.pgthinker.core.manager.ServerManager;
 import me.pgthinker.core.process.ProcessMessageService;
@@ -30,11 +31,12 @@ public class ProcessConnectMessageService implements ProcessMessageService {
     private final ServerManager serverManager;
 
     /**
-     * 客户端成功建立起真实通道的连接 并发送回来消息 此时设置VisitorChannel未可读
+     * 客户端成功建立起真实通道的连接 并发送回来消息 此时设置VisitorChannel为可读
      * @param target
      * @param transferDataMessage
      */
     @AuthMessage
+    @MessageLog
     @Override
     public void process(ChannelHandlerContext target, TransferDataMessage transferDataMessage) {
         Map<String, String> metaDataMap =

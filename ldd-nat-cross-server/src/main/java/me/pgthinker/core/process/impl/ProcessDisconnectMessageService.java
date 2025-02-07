@@ -31,6 +31,7 @@ public class ProcessDisconnectMessageService implements ProcessMessageService {
     private final ServerManager serverManager;
 
     @AuthMessage
+    @MessageLog
     @Override
     public void process(ChannelHandlerContext target, TransferDataMessage transferDataMessage) {
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();

@@ -43,19 +43,17 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         // 根据openPort 获取对应的客户端
         Integer port = getPort(ctx);
         List<ChannelHandlerContext> clientChannelCtx = serverManager.getClientChannelCtx(port);
-        clientChannelCtx.forEach(clientCtx -> {
-            if(clientCtx != null){
-                List<Map<String,String>> metas = serverManager.getMetaData(port);
-                metas.forEach(meta->{
-                    String licenseKey = meta.get(Constants.LICENSE_KEY);
-                    ProxyConfig proxyConfig = ProxyConfig.fromMap(meta);
-                    String visitorId = serverManager.getVisitorId(ctx);
-                    TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-                    TransferDataMessage message;
-                    message = transferDataMessageHelper.buildDisconnectMessage(proxyConfig, visitorId);
-                    clientCtx.writeAndFlush(message);
-                });
-            }
+        clientChannelCtx.stream().filter(ObjectUtil::isNotEmpty).forEach(clientCtx -> {
+            List<Map<String,String>> metas = serverManager.getMetaData(port);
+            metas.forEach(meta->{
+                String licenseKey = meta.get(Constants.LICENSE_KEY);
+                ProxyConfig proxyConfig = ProxyConfig.fromMap(meta);
+                String visitorId = serverManager.getVisitorId(ctx);
+                TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+                TransferDataMessage message;
+                message = transferDataMessageHelper.buildDisconnectMessage(proxyConfig, visitorId);
+                clientCtx.writeAndFlush(message);
+            });
         });
         ctx.close();
         serverManager.removeVisitorCtx(ctx);
@@ -74,20 +72,18 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         String visitorId = serverManager.addVisitorCtx(ctx);
         // 构建连接消息体
-        clientChannelCtx.forEach(clientCtx->{
-            if(clientCtx != null){
-                List<Map<String,String>> metas = serverManager.getMetaData(port);
-                metas.forEach(metaData->{
-                    ctx.channel().config().setOption(ChannelOption.AUTO_READ, false);
-                    String licenseKey = metaData.get(Constants.LICENSE_KEY);
-                    ProxyConfig proxyConfig = ProxyConfig.fromMap(metaData);
-                    TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-                    TransferDataMessage message;
-                    message = transferDataMessageHelper.buildConnectMessage(proxyConfig, visitorId);
-                    clientCtx.writeAndFlush(message);
-                });
+        clientChannelCtx.stream().filter(ObjectUtil::isNotEmpty).forEach(clientCtx->{
+            List<Map<String,String>> metas = serverManager.getMetaData(port);
+            metas.forEach(metaData->{
+                ctx.channel().config().setOption(ChannelOption.AUTO_READ, false);
+                String licenseKey = metaData.get(Constants.LICENSE_KEY);
+                ProxyConfig proxyConfig = ProxyConfig.fromMap(metaData);
+                TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+                TransferDataMessage message;
+                message = transferDataMessageHelper.buildConnectMessage(proxyConfig, visitorId);
+                clientCtx.writeAndFlush(message);
+            });
 
-            }
         });
 
     }
@@ -113,13 +109,13 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     String licenseKey = metaData.get(Constants.LICENSE_KEY);
                     TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
                     TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(data, byteBuf);
-                    log.info("transferDataMessage:{}", transferDataMessage);
                     clientCtx.writeAndFlush(transferDataMessage);
                 });
             }else{
                 serverManager.removeClientChannel(clientCtx);
                 clientCtx.close();
             }
+
         });
 
     }

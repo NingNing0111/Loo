@@ -136,7 +136,7 @@ public class TransferDataMessageHelper {
         metaMap.put(Constants.LICENSE_KEY, licenseKey);
         metaMap.put(Constants.VISITOR_ID, visitorId);
         TransferMessageMetaData metaData = TransferMessageMetaData.newBuilder().putAllMetaData(metaMap).setTimestamp(TimestampUtil.now()).build();
-        return TransferDataMessage.newBuilder().setMetaData(metaData).setData(ByteString.copyFromUtf8("empty")).setCmdType(CmdType.CONNECT).build();
+        return TransferDataMessage.newBuilder().setMetaData(metaData).setCmdType(CmdType.CONNECT).build();
     }
 
     public TransferDataMessage buildConnectMessage(ProxyConfig proxyConfig) {

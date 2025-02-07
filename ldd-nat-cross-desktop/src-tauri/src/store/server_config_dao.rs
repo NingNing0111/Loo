@@ -1,0 +1,133 @@
+use std::error::Error;
+
+use rusqlite::ToSql;
+
+use crate::{global::CONFIG_DB, utils::time::now_timestamp};
+
+use super::{dao::BaseDAO, model::config::ServerConfig};
+
+const SERVER_CONFIG_TABLE: &str = "server_config";
+const INIT_TABLE_DDL: &str = "
+    CREATE TABLE IF NOT EXISTS server_config (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        server_host TEXT NOT NULL,
+        server_port INTEGER NOT NULL,
+        password TEXT NOT NULL,
+        created_time INTEGER NOT NULL 
+    );
+";
+pub struct ServerConfigDAO {
+    dao: BaseDAO,
+}
+
+impl ServerConfigDAO {
+    pub fn new() -> Self {
+        let base_dao = BaseDAO::new(CONFIG_DB, SERVER_CONFIG_TABLE)
+            .expect(format!("connect to {} fail!", SERVER_CONFIG_TABLE).as_str());
+        let _ = base_dao.execute_ddl(INIT_TABLE_DDL);
+        ServerConfigDAO { dao: base_dao }
+    }
+
+    /// 插入一条数据
+    pub fn insert(&self, config: ServerConfig) -> Result<usize, Box<dyn Error>> {
+        let columns = ["server_host", "server_port", "password", "created_time"];
+        let now_timestamp = now_timestamp();
+        let values: [&(dyn ToSql); 4] = [
+            &config.server_host.as_str(),
+            &config.server_port,
+            &config.password.as_str(),
+            &now_timestamp,
+        ];
+        let i = self
+            .dao
+            .insert(&columns, &values)
+            .expect(format!("Failed to insert data: {:?}", config).as_str());
+        Ok(i)
+    }
+
+    /// 根据ID删除
+    pub fn delete_by_id(&self, config_id: i32) -> Result<usize, Box<dyn Error>> {
+        let values: [&(dyn ToSql); 1] = [&config_id];
+        let i = self
+            .dao
+            .delete("id = ?", &values)
+            .expect(format!("Failed to delete data:{}", config_id).as_str());
+        Ok(i)
+    }
+
+    /// 更新配置
+    pub fn update_by_id(&self, new_config: ServerConfig) -> Result<usize, Box<dyn Error>> {
+        let set_columns = ["server_host", "server_port", "password", "created_time"];
+        let now_timestamp = now_timestamp();
+        let set_values: [&dyn ToSql; 4] = [
+            &new_config.server_host,
+            &new_config.server_port,
+            &new_config.password,
+            &now_timestamp,
+        ];
+        let where_values: [&dyn ToSql; 1] = [&new_config.id];
+
+        let i = self
+            .dao
+            .update(&set_columns, &set_values, "id = ?", &where_values)
+            .expect(format!("Failed to update data:{:?}", new_config).as_str());
+        Ok(i)
+    }
+
+    /// 根据Id查找
+    pub fn find_by_id(&self, config_id: i32) -> Result<Option<ServerConfig>, Box<dyn Error>> {
+        let sql = format!(
+            "SELECT id, server_host, server_port, password, created_time FROM {} where id = ?",
+            SERVER_CONFIG_TABLE
+        );
+        let params: [&dyn ToSql; 1] = [&config_id];
+        let res = self
+            .dao
+            .query(sql.as_str(), &params, |row| {
+                Ok(ServerConfig {
+                    id: row.get(0)?,
+                    server_host: row.get(1)?,
+                    server_port: row.get(2)?,
+                    password: row.get(3)?,
+                    create_time: row.get(4)?,
+                })
+            })
+            .expect(format!("Failed to query data by id:{}", config_id).as_str());
+        let res = match res.get(0) {
+            Some(e) => Some(e.clone()),
+            None => None,
+        };
+        Ok(res)
+    }
+
+    /// 查找所有记录
+    pub fn find_all(&self) -> Result<Vec<ServerConfig>, Box<dyn Error>> {
+        let sql = format!(
+            "SELECT id, server_host, server_port, password, created_time FROM {}",
+            SERVER_CONFIG_TABLE
+        );
+        let res = self
+            .dao
+            .query(&sql, &[], |row| {
+                Ok(ServerConfig {
+                    id: row.get(0)?,
+                    server_host: row.get(1)?,
+                    server_port: row.get(2)?,
+                    password: row.get(3)?,
+                    create_time: row.get(4)?,
+                })
+            })
+            .expect("Failed to query all data.");
+        Ok(res)
+    }
+
+    pub fn reset_data(&self) -> Result<usize, Box<dyn Error>> {
+        let drop_ddl = format!("DROP TABLE {};", SERVER_CONFIG_TABLE);
+        let _ = self.dao.execute_ddl(&drop_ddl).expect("Drop table failed.");
+        let _ = self
+            .dao
+            .execute_ddl(INIT_TABLE_DDL)
+            .expect("Init table failed.");
+        Ok(0)
+    }
+}

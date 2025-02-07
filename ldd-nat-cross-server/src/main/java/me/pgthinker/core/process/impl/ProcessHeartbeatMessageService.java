@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.annotation.AuthMessage;
+import me.pgthinker.annotation.MessageLog;
 import me.pgthinker.core.process.ProcessMessageService;
 import me.pgthinker.message.TransferDataMessageProto;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 public class ProcessHeartbeatMessageService implements ProcessMessageService {
 
     @AuthMessage
+    @MessageLog
     @Override
     public void process(ChannelHandlerContext target, TransferDataMessageProto.TransferDataMessage transferDataMessage) {
 
