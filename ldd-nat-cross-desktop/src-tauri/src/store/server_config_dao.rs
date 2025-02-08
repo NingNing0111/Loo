@@ -2,9 +2,9 @@ use std::error::Error;
 
 use rusqlite::ToSql;
 
-use crate::{global::CONFIG_DB, utils::time::now_timestamp};
+use crate::{global::CONFIG_DB, model::dto::PageResult, utils::time::now_timestamp};
 
-use super::{dao::BaseDAO, model::config::ServerConfig};
+use super::{dao::BaseDAO, model::config::ServerConfigDO};
 
 const SERVER_CONFIG_TABLE: &str = "server_config";
 const INIT_TABLE_DDL: &str = "
@@ -29,7 +29,7 @@ impl ServerConfigDAO {
     }
 
     /// 插入一条数据
-    pub fn insert(&self, config: ServerConfig) -> Result<usize, Box<dyn Error>> {
+    pub fn insert(&self, config: ServerConfigDO) -> Result<usize, Box<dyn Error>> {
         let columns = ["server_host", "server_port", "password", "created_time"];
         let now_timestamp = now_timestamp();
         let values: [&(dyn ToSql); 4] = [
@@ -56,7 +56,7 @@ impl ServerConfigDAO {
     }
 
     /// 更新配置
-    pub fn update_by_id(&self, new_config: ServerConfig) -> Result<usize, Box<dyn Error>> {
+    pub fn update_by_id(&self, new_config: ServerConfigDO) -> Result<usize, Box<dyn Error>> {
         let set_columns = ["server_host", "server_port", "password", "created_time"];
         let now_timestamp = now_timestamp();
         let set_values: [&dyn ToSql; 4] = [
@@ -75,7 +75,7 @@ impl ServerConfigDAO {
     }
 
     /// 根据Id查找
-    pub fn find_by_id(&self, config_id: i32) -> Result<Option<ServerConfig>, Box<dyn Error>> {
+    pub fn find_by_id(&self, config_id: i32) -> Result<Option<ServerConfigDO>, Box<dyn Error>> {
         let sql = format!(
             "SELECT id, server_host, server_port, password, created_time FROM {} where id = ?",
             SERVER_CONFIG_TABLE
@@ -84,7 +84,7 @@ impl ServerConfigDAO {
         let res = self
             .dao
             .query(sql.as_str(), &params, |row| {
-                Ok(ServerConfig {
+                Ok(ServerConfigDO {
                     id: row.get(0)?,
                     server_host: row.get(1)?,
                     server_port: row.get(2)?,
@@ -101,7 +101,7 @@ impl ServerConfigDAO {
     }
 
     /// 查找所有记录
-    pub fn find_all(&self) -> Result<Vec<ServerConfig>, Box<dyn Error>> {
+    pub fn find_all(&self) -> Result<Vec<ServerConfigDO>, Box<dyn Error>> {
         let sql = format!(
             "SELECT id, server_host, server_port, password, created_time FROM {}",
             SERVER_CONFIG_TABLE
@@ -109,7 +109,7 @@ impl ServerConfigDAO {
         let res = self
             .dao
             .query(&sql, &[], |row| {
-                Ok(ServerConfig {
+                Ok(ServerConfigDO {
                     id: row.get(0)?,
                     server_host: row.get(1)?,
                     server_port: row.get(2)?,
@@ -121,6 +121,35 @@ impl ServerConfigDAO {
         Ok(res)
     }
 
+    pub fn page(
+        &self,
+        page: i32,
+        page_size: i32,
+    ) -> Result<PageResult<ServerConfigDO>, Box<dyn Error>> {
+        let offset = (page - 1) * page_size; // 计算偏移量
+        let sql = format!(
+            "SELECT id, server_host, server_port, password, created_time 
+             FROM {} 
+             ORDER BY id DESC 
+             LIMIT ? OFFSET ?",
+            SERVER_CONFIG_TABLE
+        );
+
+        let records = self.dao.query(&sql, &[&page_size, &offset], |row| {
+            Ok(ServerConfigDO {
+                id: row.get(0)?,
+                server_host: row.get(1)?,
+                server_port: row.get(2)?,
+                password: row.get(3)?,
+                create_time: row.get(4)?, // created_time 可能为 NULL
+            })
+        })?;
+
+        let total = self.count()?;
+
+        Ok(PageResult::new(total, records))
+    }
+
     pub fn reset_data(&self) -> Result<usize, Box<dyn Error>> {
         let drop_ddl = format!("DROP TABLE {};", SERVER_CONFIG_TABLE);
         let _ = self.dao.execute_ddl(&drop_ddl).expect("Drop table failed.");
@@ -129,5 +158,19 @@ impl ServerConfigDAO {
             .execute_ddl(INIT_TABLE_DDL)
             .expect("Init table failed.");
         Ok(0)
+    }
+
+    /// 统计表中的总记录数
+    pub fn count(&self) -> Result<i64, Box<dyn Error>> {
+        let sql = format!("SELECT COUNT(*) FROM {}", SERVER_CONFIG_TABLE);
+
+        let count: i64 = self
+            .dao
+            .query(&sql, &[], |row| row.get(0))?
+            .into_iter()
+            .next()
+            .unwrap_or(0); // 获取查询结果
+
+        Ok(count)
     }
 }

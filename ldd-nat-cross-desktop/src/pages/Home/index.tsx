@@ -1,9 +1,11 @@
+import { getHomeInfo } from '@/command/home';
 import './index.less';
 
 import { ReactComponent as SvgConfiguration } from '@/icons/home/Configuration.svg';
 import { ReactComponent as SvgError } from '@/icons/home/Error.svg';
 import { ReactComponent as SvgServer } from '@/icons/home/Server.svg';
 import { ReactComponent as SvgSuccess } from '@/icons/home/Success.svg';
+import { HomeCntInfo } from '@/models/types';
 
 import {
   PageContainer,
@@ -12,6 +14,7 @@ import {
   ProList,
   StatisticCard,
 } from '@ant-design/pro-components';
+import { useEffect, useState } from 'react';
 
 type StatisticCardType = {
   title: string;
@@ -20,26 +23,37 @@ type StatisticCardType = {
 };
 
 const HomePage: React.FC = () => {
+  const [homeCntInfo, setHomeCntInfo] = useState<HomeCntInfo>();
+  const loadHomeInfo = async () => {
+    let res = await getHomeInfo();
+    if (res.code === 0) {
+      setHomeCntInfo(res.data);
+    }
+  };
+  useEffect(() => {
+    loadHomeInfo();
+  }, []);
+
   // 卡片统计信息
   const cardInfos: StatisticCardType[] = [
     {
       title: '代理配置数',
-      value: 2176,
+      value: homeCntInfo ? homeCntInfo.proxyCnt : 0,
       icon: <SvgConfiguration className="icon-style" />,
     },
     {
       title: '服务端数',
-      value: 475,
+      value: homeCntInfo ? homeCntInfo.serverCnt : 0,
       icon: <SvgServer className="icon-style" />,
     },
     {
       title: '连接错误数',
-      value: 87,
+      value: homeCntInfo ? homeCntInfo.failedCnt : 0,
       icon: <SvgError className="icon-style" />,
     },
     {
       title: '连接成功数',
-      value: 1754,
+      value: homeCntInfo ? homeCntInfo.successedCnt : 0,
       icon: <SvgSuccess className="icon-style" />,
     },
   ];

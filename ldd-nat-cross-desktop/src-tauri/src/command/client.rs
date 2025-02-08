@@ -6,7 +6,7 @@ use crate::{
 
 // 启动应用
 #[tauri::command]
-pub async fn start_app(config: ClientConfig) -> CommandResult {
+pub async fn start_app(config: ClientConfig) -> CommandResult<()> {
     let client_clone = APP_STATE.client.clone();
 
     let app = ClientApp::new(config);
@@ -29,7 +29,7 @@ pub async fn start_app(config: ClientConfig) -> CommandResult {
 
 // 停止应用
 #[tauri::command]
-pub async fn stop_app() -> CommandResult {
+pub async fn stop_app() -> CommandResult<()> {
     let mut client_lock = APP_STATE.client.lock().await;
     if let Some(app) = client_lock.take() {
         if let Err(e) = app.stop().await {

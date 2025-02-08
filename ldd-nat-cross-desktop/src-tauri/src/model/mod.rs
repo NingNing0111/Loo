@@ -1,4 +1,5 @@
 pub mod command;
+pub mod dto;
 pub mod protocol;
 pub mod proxy;
 

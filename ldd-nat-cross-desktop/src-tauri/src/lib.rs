@@ -30,7 +30,15 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             command::client::start_app,
-            command::client::stop_app
+            command::client::stop_app,
+            command::home::count_info,
+            command::log::add_connect_log,
+            command::log::update_connect_log,
+            command::log::page_connect_log,
+            command::config::add_server_config,
+            command::config::page_server_config,
+            command::config::add_proxy_config_batch,
+            command::config::page_proxy_config
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

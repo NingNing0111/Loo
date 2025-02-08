@@ -1,68 +1,44 @@
+import { ClientConfig, startApp, stopApp } from '@/command/client';
 import { ReactComponent as SvgNetworkConnected } from '@/icons/proxy/NetworkConnected.svg';
 import { ReactComponent as SvgNetworkDisconnect } from '@/icons/proxy/NetworkDisconnect.svg';
-import { ReactComponent as SvgNetworkTest } from '@/icons/proxy/NetworkTest.svg';
-import { CommandResult, LocalProxyConfig, ServerConfig } from '@/models/types';
+import { LocalProxyConfig, ServerConfig } from '@/models/types';
+import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import {
   PageContainer,
   ProCard,
   ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
-import { invoke } from '@tauri-apps/api/core';
-import { Button, Flex, message, Switch, Tag } from 'antd';
+import { Button, Empty, Flex, message, Switch, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import './index.less';
 
+const EMPTY_SERVER_INFO: ServerConfig = {
+  id: -1,
+  serverHost: '-',
+  serverPort: -1,
+  password: '',
+};
+
 const ProxyPage: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
-
   const [isStart, setIsStart] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [curServerInfo, setCurServerInfo] =
+    useState<ServerConfig>(EMPTY_SERVER_INFO);
+  const [curProxyConfigList, setCurLocalProxyConfigList] = useState<
+    LocalProxyConfig[]
+  >([]);
+  const [serverConfigList, setServerConfigList] = useState<ServerConfig[]>([]);
+  const [localProxyConfigList, setLocalProxyConfigList] = useState<
+    LocalProxyConfig[]
+  >([]);
 
-  const serverConfigList: ServerConfig[] = [
-    {
-      id: '1',
-      host: 'localhost',
-      port: 8864,
-      password: '123123',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '2',
-      host: 'localhost',
-      port: 8864,
-      password: '123123',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '3',
-      host: 'localhost',
-      port: 8864,
-      password: '123123',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '4',
-      host: 'localhost',
-      port: 8864,
-      password: '123123',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '5',
-      host: 'localhost',
-      port: 8864,
-      password: '123123',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '6',
-      host: 'localhost',
-      port: 8864,
-      password: '123123',
-      createTime: '2021-08-01 12:00:00',
-    },
-  ];
+  const toggleVisible = () => {
+    setVisible((prev) => !prev);
+  };
+
   const serverColumns = [
     {
       title: 'ID',
@@ -83,65 +59,6 @@ const ProxyPage: React.FC = () => {
     {
       title: '创建时间',
       dataIndex: 'createTime',
-    },
-  ];
-
-  const localProxyConfigList: LocalProxyConfig[] = [
-    {
-      id: '1',
-      host: 'localhost',
-      port: 3306,
-      openPort: 9011,
-      protocol: 'tcp',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '2',
-      host: 'localhost',
-      port: 3306,
-      openPort: 9011,
-      protocol: 'tcp',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '3',
-      host: 'localhost',
-      port: 3306,
-      openPort: 9011,
-      protocol: 'tcp',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '4',
-      host: 'localhost',
-      port: 3306,
-      openPort: 9011,
-      protocol: 'tcp',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '5',
-      host: 'localhost',
-      port: 3306,
-      openPort: 9011,
-      protocol: 'tcp',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '6',
-      host: 'localhost',
-      port: 3306,
-      openPort: 9011,
-      protocol: 'tcp',
-      createTime: '2021-08-01 12:00:00',
-    },
-    {
-      id: '7',
-      host: 'localhost',
-      port: 3306,
-      openPort: 9011,
-      protocol: 'tcp',
-      createTime: '2021-08-01 12:00:00',
     },
   ];
 
@@ -172,38 +89,52 @@ const ProxyPage: React.FC = () => {
     },
   ];
 
-  const onApp = async () => {
-    let commandResult: CommandResult;
-    const config = {
-      proxies: [
-        {
-          host: 'localhost',
-          port: 3306,
-          openPort: 9011,
-          protocol: 'tcp',
-        },
-      ],
-      serverHost: 'localhost',
-      serverPort: 8964,
-      password: '123456',
+  const start = async () => {
+    let app_config: ClientConfig = {
+      ...curServerInfo,
+      proxies: curProxyConfigList,
     };
-    if (!isStart) {
-      commandResult = await invoke('start_app', { config });
-    } else {
-      commandResult = await invoke('stop_app');
-    }
-    if (commandResult.code === 0) {
-      setIsStart(!isStart);
+    let res = await startApp(app_config);
+    if (res.code === 0) {
+      setIsStart(true);
       messageApi.open({
         type: 'success',
-        content: commandResult.msg,
+        content: res.msg,
       });
+      // 插入连接日志
     } else {
       setIsStart(false);
+      console.log(res.err);
+
       messageApi.open({
         type: 'error',
-        content: commandResult.err,
+        content: res.err,
       });
+    }
+  };
+
+  const stop = async () => {
+    let res = await stopApp();
+    if (res.code === 0) {
+      messageApi.open({
+        type: 'success',
+        content: res.msg,
+      });
+      // 插入连接日志
+    } else {
+      messageApi.open({
+        type: 'error',
+        content: res.err,
+      });
+    }
+    setIsStart(false);
+  };
+
+  const onApp = async () => {
+    if (!isStart) {
+      await start();
+    } else {
+      await stop();
     }
   };
 
@@ -215,14 +146,14 @@ const ProxyPage: React.FC = () => {
           <ProCard
             colSpan="30%"
             extra={
-              <div>
-                <Button
+              <div style={{ height: 30 }}>
+                {/* <Button
                   icon={<SvgNetworkTest />}
                   color="primary"
                   variant="filled"
                 >
                   连接测试
-                </Button>
+                </Button> */}
               </div>
             }
           >
@@ -252,6 +183,42 @@ const ProxyPage: React.FC = () => {
             }
           >
             <ProDescriptions column={1}>
+              <ProDescriptions.Item label="主机名">
+                {isStart ? (
+                  <Tag color="success">{curServerInfo.serverHost}</Tag>
+                ) : (
+                  <Tag color="warning">未连接</Tag>
+                )}
+              </ProDescriptions.Item>
+              <ProDescriptions.Item label="接入端口">
+                {isStart ? (
+                  <Tag color="success">{curServerInfo.serverPort}</Tag>
+                ) : (
+                  <Tag color="warning">未连接</Tag>
+                )}
+              </ProDescriptions.Item>
+              <ProDescriptions.Item label="连接密码">
+                {isStart ? (
+                  <span>
+                    {visible ? curServerInfo.password : '******'}
+                    <Tooltip title={visible ? '隐藏密码' : '显示密码'}>
+                      {visible ? (
+                        <EyeInvisibleOutlined
+                          onClick={toggleVisible}
+                          style={{ marginLeft: 8, cursor: 'pointer' }}
+                        />
+                      ) : (
+                        <EyeOutlined
+                          onClick={toggleVisible}
+                          style={{ marginLeft: 8, cursor: 'pointer' }}
+                        />
+                      )}
+                    </Tooltip>
+                  </span>
+                ) : (
+                  <Tag color="warning">未连接</Tag>
+                )}
+              </ProDescriptions.Item>
               <ProDescriptions.Item
                 label="运行时长"
                 fieldProps={{
@@ -265,13 +232,6 @@ const ProxyPage: React.FC = () => {
               >
                 {isStart ? dayjs().valueOf() : 0}
               </ProDescriptions.Item>
-
-              <ProDescriptions.Item label="主机名" copyable>
-                localhost
-              </ProDescriptions.Item>
-              <ProDescriptions.Item label="接入端口" copyable>
-                8964
-              </ProDescriptions.Item>
             </ProDescriptions>
           </ProCard>
           <ProCard
@@ -279,35 +239,50 @@ const ProxyPage: React.FC = () => {
             headerBordered
             extra={
               <Button color="primary" variant="filled">
-                切换配置
+                选择代理配置
               </Button>
             }
           >
-            <ProCard
-              collapsible
-              defaultCollapsed
-              bordered
-              headerBordered
-              title="localhost:3306"
-            >
-              <ProDescriptions column={1}>
-                <ProDescriptions.Item label="穿透协议">
-                  <Tag color="success">TCP</Tag>
-                </ProDescriptions.Item>
-                <ProDescriptions.Item label="代理目标主机名">
-                  localhost
-                </ProDescriptions.Item>
-                <ProDescriptions.Item label="代理目标端口">
-                  <Tag color="processing">3306</Tag>
-                </ProDescriptions.Item>
-                <ProDescriptions.Item label="服务端映射端口">
-                  <Tag color="warning">9011</Tag>
-                </ProDescriptions.Item>
-                <ProDescriptions.Item label="访问地址" copyable>
-                  localhost:9011
-                </ProDescriptions.Item>
-              </ProDescriptions>
-            </ProCard>
+            {isStart ? (
+              <>
+                {curProxyConfigList.map((item) => (
+                  <ProCard
+                    collapsible
+                    defaultCollapsed
+                    bordered
+                    headerBordered
+                    title="localhost:3306"
+                    key={item.id}
+                  >
+                    <ProDescriptions column={1}>
+                      <ProDescriptions.Item label="穿透协议">
+                        {item.protocol === 'tcp' ? (
+                          <Tag color="success">TCP</Tag>
+                        ) : (
+                          <Tag color="warning">UDP</Tag>
+                        )}
+                      </ProDescriptions.Item>
+                      <ProDescriptions.Item label="代理目标主机名">
+                        {item.host}
+                      </ProDescriptions.Item>
+                      <ProDescriptions.Item label="代理目标端口">
+                        <Tag color="processing">{item.port}</Tag>
+                      </ProDescriptions.Item>
+                      <ProDescriptions.Item label="服务端映射端口">
+                        <Tag color="warning">{item.openPort}</Tag>
+                      </ProDescriptions.Item>
+                      <ProDescriptions.Item label="访问地址" copyable>
+                        {curServerInfo.serverHost
+                          ? curServerInfo.serverHost + ':' + item.openPort
+                          : '-'}
+                      </ProDescriptions.Item>
+                    </ProDescriptions>
+                  </ProCard>
+                ))}
+              </>
+            ) : (
+              <Empty />
+            )}
           </ProCard>
         </ProCard>
 

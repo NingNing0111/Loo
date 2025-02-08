@@ -4,7 +4,7 @@ use crate::sys::get_db_path;
 
 pub struct BaseDAO {
     table: String,
-    conn: Connection,
+    pub conn: Connection,
 }
 
 impl BaseDAO {

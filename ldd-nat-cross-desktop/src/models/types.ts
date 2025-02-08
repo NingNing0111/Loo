@@ -1,22 +1,40 @@
 export interface ServerConfig {
-  id: string;
-  host: string;
-  port: number;
+  id: number;
+  serverHost: string;
+  serverPort: number;
   password: string;
-  createTime: string | null;
+  createTime?: number;
 }
 
 export interface LocalProxyConfig {
-  id: string;
+  id?: number;
   host: string;
   port: number;
   protocol: string;
   openPort: number;
-  createTime: string | null;
+  createTime?: number;
 }
 
 export interface CommandResult {
   code: number;
   msg: string;
   err: string;
+  data: any;
 }
+
+export interface HomeCntInfo {
+  serverCnt: number;
+  proxyCnt: number;
+  successedCnt: number;
+  failedCnt: number;
+}
+
+export interface BasePageParam {
+  page: number;
+  pageSize: number;
+}
+
+export const DEFAULT_PAGE_PARAM: BasePageParam = {
+  page: 1,
+  pageSize: 5,
+};

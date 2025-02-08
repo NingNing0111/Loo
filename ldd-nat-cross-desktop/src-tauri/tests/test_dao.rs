@@ -1,4 +1,4 @@
-use app_lib::store::{model::config::ServerConfig, server_config_dao::ServerConfigDAO};
+use app_lib::store::{model::config::ServerConfigDO, server_config_dao::ServerConfigDAO};
 
 #[test]
 pub fn test_new() {
@@ -16,7 +16,7 @@ pub fn test_reset() {
 #[test]
 pub fn test_insert() {
     let server_config_dao = ServerConfigDAO::new();
-    let config = ServerConfig {
+    let config = ServerConfigDO {
         id: None,
         server_host: "localhost".to_string(),
         server_port: 8964,
