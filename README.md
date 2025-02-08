@@ -1,23 +1,23 @@
 # 项目介绍
 
-&emsp;ldd-nat-cross是一款基于SpringBoot3.x+Netty+Protobuf实现的内网穿透工具，支持多个客户端接入同一个服务端。
+&emsp;ldd-nat-cross 是一款基于 SpringBoot3.x+Netty+Protobuf 实现的内网穿透工具，支持多个客户端接入同一个服务端。
 
 ### 核心功能(开发中)
 
-- [x] TCP穿透
-- [ ] UDP穿透
+- [x] TCP 穿透
+- [ ] UDP 穿透
 - [ ] C/S 端监控
-- [ ] admin端的操作控制
+- [ ] admin 端的操作控制
 
 ### 配置文件参考
 
-&emsp;C/S端都是基于SpringBoot实现的，因此配置文件格式与SpringBoot配置文件无异。
+&emsp;C/S 端都是基于 SpringBoot 实现的，因此配置文件格式与 SpringBoot 配置文件无异。
 
 #### 服务端:
 
 ```yaml
 server:
-  port: 8964 
+  port: 8964
   password: 123456
 ```
 
@@ -54,11 +54,9 @@ client:
   - port: 必填。端口
   - openPort: 必填。服务端暴露的端口
 
-
-
 ### 启动
 
-&emsp;与启动SpringBoot项目无异。可以在jar包所在位置创建一个config目录，config目录下放配置文件.
+&emsp;与启动 SpringBoot 项目无异。可以在 jar 包所在位置创建一个 config 目录，config 目录下放配置文件.
 
 #### 服务端
 
@@ -66,8 +64,16 @@ client:
 java -jar server.jar
 ```
 
-#### 客户端
+#### 客户端(Java 版)
 
 ```shell
 java -jar client.jar
 ```
+
+#### 客户端(桌面版)
+
+![](doc/images/home.png)
+
+![](doc/images/proxy.png)
+
+![](doc/images/config.png)

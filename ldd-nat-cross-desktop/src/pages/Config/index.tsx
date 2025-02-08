@@ -1,10 +1,14 @@
 import {
   addProxyConfig,
   addServerConfig,
+  delProxyConfig,
+  delServerConfig,
   pageProxyConfig,
   pageServerConfig,
+  ping,
 } from '@/command/config';
 import AddConfigForm from '@/components/AddConfigForm';
+import OperationConfirm from '@/components/OperationConfirm';
 import {
   BasePageParam,
   DEFAULT_PAGE_PARAM,
@@ -22,109 +26,6 @@ import {
 } from '@ant-design/pro-components';
 import { Button, message, Space, Tag } from 'antd';
 import { useEffect, useState } from 'react';
-
-const serverConfigColumns: ProColumns<ServerConfig>[] = [
-  {
-    title: '序号',
-    dataIndex: 'index',
-    valueType: 'index',
-    width: 80,
-  },
-  {
-    title: '服务主机名',
-    dataIndex: 'serverHost',
-    valueType: 'text',
-    copyable: true,
-  },
-  {
-    title: '接入端口',
-    dataIndex: 'serverPort',
-    render: (data) => <Tag color="success">{JSON.stringify(data)}</Tag>,
-  },
-  {
-    title: '接入密码',
-    dataIndex: 'password',
-    valueType: 'password',
-    copyable: true,
-  },
-  {
-    title: '创建时间',
-    dataIndex: 'createTime',
-    render: (data: any) => <span>{formatTimestamp(data * 1000)}</span>,
-  },
-  {
-    title: '操作',
-    valueType: 'option',
-    align: 'center',
-    render: () => [
-      <Button key="edit" type="primary" size="small">
-        编辑
-      </Button>,
-      <Button key="del" type="primary" danger size="small">
-        删除
-      </Button>,
-      <Button key="test" variant="solid" color="green" size="small">
-        测试
-      </Button>,
-    ],
-    width: 100,
-  },
-];
-
-const proxyConfigColumns: ProColumns<LocalProxyConfig>[] = [
-  {
-    title: '序号',
-    dataIndex: 'index',
-    valueType: 'index',
-    width: 80,
-  },
-  {
-    title: '代理主机名',
-    dataIndex: 'host',
-    valueType: 'text',
-    copyable: true,
-  },
-  {
-    title: '代理端口',
-    dataIndex: 'port',
-    render: (data) => <Tag color="success">{JSON.stringify(data)}</Tag>,
-  },
-  {
-    title: '映射端口',
-    dataIndex: 'openPort',
-    render: (data) => <Tag color="warning">{JSON.stringify(data)}</Tag>,
-  },
-  {
-    title: '代理协议',
-    dataIndex: 'protocol',
-    valueEnum: {
-      tcp: <Tag color="success">TCP</Tag>,
-      udp: <Tag color="warning">UDP</Tag>,
-    },
-  },
-  {
-    title: '创建时间',
-    dataIndex: 'createTime',
-    render: (data: any) => <span>{formatTimestamp(data * 1000)}</span>,
-  },
-  {
-    title: '操作',
-    valueType: 'option',
-    align: 'center',
-    render: () => [
-      <Button key="edit" type="primary" size="small">
-        编辑
-      </Button>,
-      <Button key="del" type="primary" danger size="small">
-        删除
-      </Button>,
-      <Button key="test" variant="solid" color="green" size="small">
-        测试
-      </Button>,
-    ],
-    width: 100,
-  },
-];
 
 const ConfigPage: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -159,15 +60,177 @@ const ConfigPage: React.FC = () => {
       let pageRes = res.data;
       setProxyConfigList(pageRes.records);
       setProxyTotal(pageRes.total);
-      console.log(pageRes.records);
     }
     setProxyLoading(false);
   };
 
-  useEffect(() => {
-    loadServerConfig();
-    loadProxyConfig();
-  }, []);
+  const delServer = async (id: number | undefined) => {
+    let res = await delServerConfig(id);
+    if (res.code === 0) {
+      messageApi.open({
+        type: 'success',
+        content: res.msg,
+      });
+      await loadServerConfig();
+    }
+  };
+
+  const delProxy = async (id: number | undefined) => {
+    let res = await delProxyConfig(id);
+    if (res.code === 0) {
+      messageApi.open({
+        type: 'success',
+        content: res.msg,
+      });
+      await loadProxyConfig();
+    }
+  };
+
+  const toPing = async (host: string, port: number, protocol: string) => {
+    let res = await ping(host, port, protocol === 'udp' ? 'udp' : 'tcp');
+    if (res.code === 0) {
+      messageApi.success({
+        content: res.msg,
+      });
+    } else {
+      messageApi.error({
+        content: res.err,
+      });
+    }
+  };
+
+  const serverConfigColumns: ProColumns<ServerConfig>[] = [
+    {
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'index',
+      width: 80,
+    },
+    {
+      title: '服务主机名',
+      dataIndex: 'serverHost',
+      valueType: 'text',
+      copyable: true,
+    },
+    {
+      title: '接入端口',
+      dataIndex: 'serverPort',
+      render: (data) => <Tag color="success">{JSON.stringify(data)}</Tag>,
+    },
+    {
+      title: '接入密码',
+      dataIndex: 'password',
+      valueType: 'password',
+      copyable: true,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createTime',
+      render: (data: any) => <span>{formatTimestamp(data * 1000)}</span>,
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      align: 'center',
+      render: (_, record) => [
+        <Button key="edit" type="primary" size="small">
+          编辑
+        </Button>,
+        <OperationConfirm
+          key="del"
+          title="删除警告"
+          description="你确定要删除这条配置信息吗？"
+          btnName="删除"
+          size="small"
+          type="primary"
+          danger
+          onConfirm={async () => await delServer(record.id)}
+        />,
+        <Button
+          key="test"
+          variant="solid"
+          color="green"
+          size="small"
+          onClick={async () =>
+            await toPing(record.serverHost, record.serverPort, 'tcp')
+          }
+        >
+          测试
+        </Button>,
+      ],
+      width: 100,
+    },
+  ];
+
+  const proxyConfigColumns: ProColumns<LocalProxyConfig>[] = [
+    {
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'index',
+      width: 80,
+    },
+    {
+      title: '代理主机名',
+      dataIndex: 'host',
+      valueType: 'text',
+      copyable: true,
+    },
+    {
+      title: '代理端口',
+      dataIndex: 'port',
+      render: (data) => <Tag color="success">{JSON.stringify(data)}</Tag>,
+    },
+    {
+      title: '映射端口',
+      dataIndex: 'openPort',
+      render: (data) => <Tag color="warning">{JSON.stringify(data)}</Tag>,
+    },
+    {
+      title: '代理协议',
+      dataIndex: 'protocol',
+      valueEnum: {
+        tcp: <Tag color="success">TCP</Tag>,
+        udp: <Tag color="warning">UDP</Tag>,
+      },
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createTime',
+      render: (data: any) => <span>{formatTimestamp(data * 1000)}</span>,
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      align: 'center',
+      render: (_, record) => [
+        <Button key="edit" type="primary" size="small">
+          编辑
+        </Button>,
+        <OperationConfirm
+          key="del"
+          title="删除警告"
+          description="你确定要删除这条配置信息吗？"
+          btnName="删除"
+          size="small"
+          type="primary"
+          danger
+          onConfirm={async () => await delProxy(record.id)}
+        />,
+        <Button
+          key="test"
+          variant="solid"
+          color="green"
+          size="small"
+          onClick={async () =>
+            await toPing(record.host, record.port, record.protocol)
+          }
+        >
+          测试
+        </Button>,
+      ],
+      width: 100,
+    },
+  ];
 
   const onFinishServerConfig = async (values: ServerConfig) => {
     let res = await addServerConfig(values);
@@ -200,6 +263,11 @@ const ConfigPage: React.FC = () => {
       });
     }
   };
+
+  useEffect(() => {
+    loadServerConfig();
+    loadProxyConfig();
+  }, []);
 
   return (
     <>

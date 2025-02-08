@@ -54,3 +54,40 @@ export const pageProxyConfig = async (
 ): Promise<CommandResult> => {
   return await invoke('page_proxy_config', { ...pageParam });
 };
+
+/**
+ * 删除服务端配置信息
+ * @param id 服务端配置id
+ * @returns
+ */
+export const delServerConfig = async (
+  id: number | undefined,
+): Promise<CommandResult> => {
+  return await invoke('del_server_config', { id });
+};
+
+/**
+ * 删除代理配置信息
+ * @param id 代理配置id
+ * @returns
+ */
+export const delProxyConfig = async (
+  id: number | undefined,
+): Promise<CommandResult> => {
+  return await invoke('del_proxy_config', { id });
+};
+
+/**
+ * 网络连接状态 ping命令
+ * @param host
+ * @param port
+ * @param protocol
+ * @returns
+ */
+export const ping = async (
+  host: string,
+  port: number,
+  protocol: 'tcp' | 'udp',
+): Promise<CommandResult> => {
+  return await invoke('ping', { host, port, protocol });
+};

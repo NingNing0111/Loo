@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{
     model::{
         command::CommandResult,
@@ -9,6 +11,11 @@ use crate::{
         proxy_config_dao::ProxyConfigDAO,
         server_config_dao::ServerConfigDAO,
     },
+};
+use std::net::ToSocketAddrs;
+use tokio::{
+    net::{TcpStream, UdpSocket},
+    time::timeout,
 };
 
 #[tauri::command]
@@ -66,7 +73,10 @@ pub fn add_server_config(server_config: ServerConfigDO) -> CommandResult<usize> 
 }
 
 #[tauri::command]
-pub fn page_server_config(page: i32, page_size: i32) -> CommandResult<PageResult<ServerConfigDO>> {
+pub async fn page_server_config(
+    page: i32,
+    page_size: i32,
+) -> CommandResult<PageResult<ServerConfigDO>> {
     let server_dao = ServerConfigDAO::new();
     let res = server_dao
         .page(page, page_size)
@@ -76,7 +86,7 @@ pub fn page_server_config(page: i32, page_size: i32) -> CommandResult<PageResult
 }
 
 #[tauri::command]
-pub fn add_proxy_config_batch(data: AddProxyConfig) -> CommandResult<usize> {
+pub async fn add_proxy_config_batch(data: AddProxyConfig) -> CommandResult<usize> {
     let mut proxy_dao = ProxyConfigDAO::new();
     let proxies = data.proxies;
     let res = proxy_dao
@@ -94,4 +104,66 @@ pub fn page_proxy_config(page: i32, page_size: i32) -> CommandResult<PageResult<
         .map_err(|_| CommandResult::<()>::err("query failed."))
         .unwrap();
     CommandResult::ok_with_data(res)
+}
+
+#[tauri::command]
+pub fn del_server_config(id: i32) -> CommandResult<usize> {
+    let server_dao = ServerConfigDAO::new();
+    let res = server_dao
+        .delete_by_id(id)
+        .map_err(|_| CommandResult::<()>::err("del server config failed."))
+        .unwrap();
+    CommandResult::ok_with_msg_data("删除服务端配置成功", res)
+}
+
+#[tauri::command]
+pub fn del_proxy_config(id: i32) -> CommandResult<usize> {
+    let proxy_dao = ProxyConfigDAO::new();
+    let res = proxy_dao
+        .delete_by_id(id)
+        .map_err(|_| CommandResult::<()>::err("del proxy config failed."))
+        .unwrap();
+    CommandResult::ok_with_msg_data("删除代理配置成功", res)
+}
+
+#[tauri::command]
+pub async fn ping(host: &str, port: i32, protocol: &str) -> Result<CommandResult<()>, String> {
+    let addr = format!("{}:{}", host, port);
+
+    match protocol {
+        "tcp" => {
+            match timeout(Duration::from_secs(3), TcpStream::connect(&addr)).await {
+                Ok(Ok(_)) => Ok(CommandResult::ok("TCP网络连通")), // 连接成功
+                Ok(Err(e)) => Ok(CommandResult::err(&format!("TCP无法连接:{}", e))),
+                Err(_) => Ok(CommandResult::err("TCP连接超时")),
+            }
+        }
+        "udp" => {
+            match addr.to_socket_addrs() {
+                Ok(mut addrs) => {
+                    if let Some(addr) = addrs.next() {
+                        match UdpSocket::bind("0.0.0.0:0").await {
+                            Ok(socket) => {
+                                let result =
+                                    timeout(Duration::from_secs(3), socket.send_to(&[0], &addr))
+                                        .await;
+                                match result {
+                                    Ok(Ok(_)) => Ok(CommandResult::ok("UDP网络连通")), // 发送成功，UDP 可能连通
+                                    Ok(Err(e)) => {
+                                        Ok(CommandResult::err(&format!("UDP无法连接:{}", e)))
+                                    }
+                                    Err(_) => Ok(CommandResult::err("UDP连接超时")),
+                                }
+                            }
+                            Err(e) => Ok(CommandResult::err(&format!("{}", e))),
+                        }
+                    } else {
+                        Ok(CommandResult::err("无效的目标网络地址"))
+                    }
+                }
+                Err(e) => Ok(CommandResult::err(&format!("目标地址解析失败:{}", e))),
+            }
+        }
+        _ => Ok(CommandResult::err(&format!("无效的网络协议,仅限TCP/UDP"))),
+    }
 }

@@ -1,5 +1,5 @@
 export interface ServerConfig {
-  id: number;
+  id?: number;
   serverHost: string;
   serverPort: number;
   password: string;

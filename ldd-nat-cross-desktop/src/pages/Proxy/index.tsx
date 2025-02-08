@@ -1,25 +1,87 @@
 import { ClientConfig, startApp, stopApp } from '@/command/client';
 import { ReactComponent as SvgNetworkConnected } from '@/icons/proxy/NetworkConnected.svg';
 import { ReactComponent as SvgNetworkDisconnect } from '@/icons/proxy/NetworkDisconnect.svg';
-import { LocalProxyConfig, ServerConfig } from '@/models/types';
+import { ReactComponent as SvgNetworkTest } from '@/icons/proxy/NetworkTest.svg';
+
+import { pageProxyConfig, pageServerConfig } from '@/command/config';
+import SelectConfigForm from '@/components/SelectConfigForm';
+import {
+  BasePageParam,
+  DEFAULT_PAGE_PARAM,
+  LocalProxyConfig,
+  ServerConfig,
+} from '@/models/types';
+import { formatSeconds2HMS } from '@/utils/time';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import {
   PageContainer,
   ProCard,
+  ProColumns,
   ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
 import { Button, Empty, Flex, message, Switch, Tag, Tooltip } from 'antd';
-import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './index.less';
 
 const EMPTY_SERVER_INFO: ServerConfig = {
-  id: -1,
   serverHost: '-',
   serverPort: -1,
   password: '',
 };
+
+const serverColumns: ProColumns<ServerConfig>[] = [
+  {
+    title: '序号',
+    dataIndex: 'index',
+    valueType: 'index',
+  },
+  {
+    title: '主机名',
+    dataIndex: 'serverHost',
+  },
+  {
+    title: '端口',
+    dataIndex: 'serverPort',
+    render: (data) => <Tag color="success">{JSON.stringify(data)}</Tag>,
+  },
+  {
+    title: '接入密码',
+    dataIndex: 'password',
+    valueType: 'password',
+  },
+];
+
+const localProxyColumns: ProColumns<LocalProxyConfig>[] = [
+  {
+    title: '序号',
+    dataIndex: 'index',
+    valueType: 'index',
+  },
+  {
+    title: '代理主机',
+    dataIndex: 'host',
+  },
+  {
+    title: '代理端口',
+    dataIndex: 'port',
+    render: (data) => <Tag color="success">{JSON.stringify(data)}</Tag>,
+  },
+  {
+    title: '映射端口',
+    dataIndex: 'openPort',
+    render: (data) => <Tag color="warning">{JSON.stringify(data)}</Tag>,
+  },
+  {
+    title: '代理协议',
+    dataIndex: 'protocol',
+    valueEnum: {
+      tcp: <Tag color="success">TCP</Tag>,
+      udp: <Tag color="warning">UDP</Tag>,
+    },
+  },
+];
+let timer: ReturnType<typeof setInterval> | null = null;
 
 const ProxyPage: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -30,64 +92,67 @@ const ProxyPage: React.FC = () => {
   const [curProxyConfigList, setCurLocalProxyConfigList] = useState<
     LocalProxyConfig[]
   >([]);
+
   const [serverConfigList, setServerConfigList] = useState<ServerConfig[]>([]);
-  const [localProxyConfigList, setLocalProxyConfigList] = useState<
-    LocalProxyConfig[]
-  >([]);
+  const [proxyConfigList, setProxyConfigList] = useState<LocalProxyConfig[]>(
+    [],
+  );
+  const [serverPageParam, setServerPageParam] =
+    useState<BasePageParam>(DEFAULT_PAGE_PARAM);
+  const [proxyPageParam, setProxyPageParam] =
+    useState<BasePageParam>(DEFAULT_PAGE_PARAM);
+  const [serverTotal, setServerTotal] = useState(0);
+  const [proxyTotal, setProxyTotal] = useState(0);
+  const [isServerLoading, setServerLoading] = useState(false);
+  const [isProxyLoading, setProxyLoading] = useState(false);
+  const [runSeconds, setRunSeconds] = useState(0);
+
+  const loadServerConfig = async () => {
+    setServerLoading(true);
+    let res = await pageServerConfig(serverPageParam);
+    if (res.code === 0) {
+      let pageRes = res.data;
+      setServerConfigList(pageRes.records);
+      setServerTotal(pageRes.total);
+    }
+    setServerLoading(false);
+  };
+
+  const loadProxyConfig = async () => {
+    setProxyLoading(true);
+    let res = await pageProxyConfig(proxyPageParam);
+    if (res.code === 0) {
+      let pageRes = res.data;
+      setProxyConfigList(pageRes.records);
+      setProxyTotal(pageRes.total);
+    }
+    setProxyLoading(false);
+  };
+
+  useEffect(() => {
+    loadServerConfig();
+    loadProxyConfig();
+  }, []);
 
   const toggleVisible = () => {
     setVisible((prev) => !prev);
   };
 
-  const serverColumns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-    },
-    {
-      title: '主机名',
-      dataIndex: 'host',
-    },
-    {
-      title: '端口',
-      dataIndex: 'port',
-    },
-    {
-      title: '认证密码',
-      dataIndex: 'password',
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-    },
-  ];
+  const toggleTimer = () => {
+    timer = setInterval(() => {
+      setRunSeconds((prevSeconds) => {
+        return prevSeconds + 1;
+      });
+    }, 1000);
+  };
 
-  const localProxyColumns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-    },
-    {
-      title: '主机名',
-      dataIndex: 'host',
-    },
-    {
-      title: '端口',
-      dataIndex: 'port',
-    },
-    {
-      title: '开放端口',
-      dataIndex: 'openPort',
-    },
-    {
-      title: '协议',
-      dataIndex: 'protocol',
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-    },
-  ];
+  const onSelectServerConfig = async (value: ServerConfig[]) => {
+    setCurServerInfo(value[0]);
+  };
+
+  const onSelectProxyConfig = async (value: LocalProxyConfig[]) => {
+    setCurLocalProxyConfigList(value);
+  };
 
   const start = async () => {
     let app_config: ClientConfig = {
@@ -104,8 +169,6 @@ const ProxyPage: React.FC = () => {
       // 插入连接日志
     } else {
       setIsStart(false);
-      console.log(res.err);
-
       messageApi.open({
         type: 'error',
         content: res.err,
@@ -133,7 +196,13 @@ const ProxyPage: React.FC = () => {
   const onApp = async () => {
     if (!isStart) {
       await start();
+      // 开始计时
+      toggleTimer();
     } else {
+      if (timer !== null) {
+        clearInterval(timer);
+        setRunSeconds(0);
+      }
       await stop();
     }
   };
@@ -147,13 +216,14 @@ const ProxyPage: React.FC = () => {
             colSpan="30%"
             extra={
               <div style={{ height: 30 }}>
-                {/* <Button
+                <Button
                   icon={<SvgNetworkTest />}
                   color="primary"
                   variant="filled"
+                  size="small"
                 >
                   连接测试
-                </Button> */}
+                </Button>
               </div>
             }
           >
@@ -177,30 +247,31 @@ const ProxyPage: React.FC = () => {
             title="连接信息"
             headerBordered
             extra={
-              <Button color="primary" variant="filled">
-                切换服务
-              </Button>
+              <SelectConfigForm
+                label="接入服务"
+                placeholder="请选择一个接入服务"
+                maxCount={1}
+                data={serverConfigList}
+                keyHost="serverHost"
+                keyPort="serverPort"
+                triggerName="切换服务"
+                onFinish={onSelectServerConfig}
+              />
             }
           >
             <ProDescriptions column={1}>
               <ProDescriptions.Item label="主机名">
-                {isStart ? (
-                  <Tag color="success">{curServerInfo.serverHost}</Tag>
-                ) : (
-                  <Tag color="warning">未连接</Tag>
-                )}
+                {curServerInfo.id ? curServerInfo.serverHost : '-'}
               </ProDescriptions.Item>
               <ProDescriptions.Item label="接入端口">
-                {isStart ? (
-                  <Tag color="success">{curServerInfo.serverPort}</Tag>
-                ) : (
-                  <Tag color="warning">未连接</Tag>
-                )}
+                {curServerInfo.id ? curServerInfo.serverPort : '-'}
               </ProDescriptions.Item>
               <ProDescriptions.Item label="连接密码">
-                {isStart ? (
+                {curServerInfo.id ? (
                   <span>
-                    {visible ? curServerInfo.password : '******'}
+                    {visible && curServerInfo.id
+                      ? curServerInfo.password
+                      : '******'}
                     <Tooltip title={visible ? '隐藏密码' : '显示密码'}>
                       {visible ? (
                         <EyeInvisibleOutlined
@@ -216,34 +287,45 @@ const ProxyPage: React.FC = () => {
                     </Tooltip>
                   </span>
                 ) : (
-                  <Tag color="warning">未连接</Tag>
+                  '-'
                 )}
               </ProDescriptions.Item>
-              <ProDescriptions.Item
-                label="运行时长"
-                fieldProps={{
-                  format: 'HH:mm:ss',
-                }}
-                valueType="dateTime"
-                contentStyle={{
-                  color: isStart ? '#18bd18' : 'black',
-                  fontSize: '16px',
-                }}
-              >
-                {isStart ? dayjs().valueOf() : 0}
-              </ProDescriptions.Item>
+              <>
+                {isStart ? (
+                  <ProDescriptions.Item
+                    label="运行时长"
+                    valueType="text"
+                    contentStyle={{
+                      color: isStart ? '#18bd18' : 'black',
+                      fontSize: '16px',
+                    }}
+                  >
+                    <Tag color="success">{formatSeconds2HMS(runSeconds)}</Tag>
+                  </ProDescriptions.Item>
+                ) : (
+                  <ProDescriptions.Item label="运行时长">
+                    <Tag color="warning">未连接</Tag>
+                  </ProDescriptions.Item>
+                )}
+              </>
             </ProDescriptions>
           </ProCard>
           <ProCard
             title="配置详情"
             headerBordered
             extra={
-              <Button color="primary" variant="filled">
-                选择代理配置
-              </Button>
+              <SelectConfigForm
+                label="代理配置"
+                placeholder="请选择代理配置"
+                data={proxyConfigList}
+                keyHost="host"
+                keyPort="port"
+                triggerName="选择代理配置"
+                onFinish={onSelectProxyConfig}
+              />
             }
           >
-            {isStart ? (
+            {curProxyConfigList.length > 0 ? (
               <>
                 {curProxyConfigList.map((item) => (
                   <ProCard
@@ -285,7 +367,6 @@ const ProxyPage: React.FC = () => {
             )}
           </ProCard>
         </ProCard>
-
         <ProCard
           split="vertical"
           className="content-card"
@@ -298,14 +379,24 @@ const ProxyPage: React.FC = () => {
             className="content-children-card"
           >
             <ProTable
+              loading={isServerLoading}
               dataSource={serverConfigList}
               rowKey="id"
               search={false}
               pagination={{
-                showQuickJumper: true,
-                pageSize: 5,
+                total: serverTotal,
+                pageSize: serverPageParam.pageSize,
+                current: serverPageParam.page,
+                align: 'center',
+                onChange: async (page, pageSize) => {
+                  serverPageParam.page = page;
+                  serverPageParam.pageSize = pageSize;
+                  setServerPageParam(serverPageParam);
+                  await loadServerConfig();
+                },
               }}
               columns={serverColumns}
+              toolBarRender={false}
             />
           </ProCard>
           <ProCard
@@ -315,12 +406,21 @@ const ProxyPage: React.FC = () => {
             className="content-children-card"
           >
             <ProTable
-              dataSource={localProxyConfigList}
+              toolBarRender={false}
+              dataSource={proxyConfigList}
               rowKey="id"
+              loading={isProxyLoading}
               search={false}
               pagination={{
-                showQuickJumper: true,
-                pageSize: 5,
+                pageSize: proxyPageParam.pageSize,
+                current: proxyPageParam.page,
+                total: proxyTotal,
+                onChange: async (page, pageSize) => {
+                  proxyPageParam.page = page;
+                  proxyPageParam.pageSize = pageSize;
+                  setProxyPageParam(proxyPageParam);
+                  await loadProxyConfig();
+                },
               }}
               columns={localProxyColumns}
             />

@@ -68,50 +68,20 @@ const HomePage: React.FC = () => {
     },
     lastUpdateTime: new Date(),
     version: '1.0.0',
-    introduce: '这是项目介绍',
+    introduce: '一款方便、简洁的内网穿透工具',
   };
 
   // 功能特性
   const futureInfo = [
     {
       id: '1',
-      name: 'TCP/UDP穿透',
-      description: '支持基本的端口穿透',
+      name: 'TCP 穿透',
+      description: '支持基本的端口映射穿透',
     },
     {
       id: '2',
-      name: '支持服务端配置',
-      description: '支持服务端配置',
-    },
-    {
-      id: '3',
-      name: '支持连接错误数',
-      description: '支持连接错误数',
-    },
-    {
-      id: '4',
-      name: '支持连接成功数',
-      description: '支持连接成功数',
-    },
-    {
-      id: '5',
-      name: '支持连接错误数',
-      description: '支持连接错误数',
-    },
-    {
-      id: '6',
-      name: '支持连接成功数',
-      description: '支持连接成功数',
-    },
-    {
-      id: '7',
-      name: '支持连接错误数',
-      description: '支持连接错误数',
-    },
-    {
-      id: '8',
-      name: '支持连接成功数',
-      description: '支持连接成功数',
+      name: '配置管理',
+      descriptionInfo: '配置的增删改查管理，支持网络连接测试',
     },
   ];
 
@@ -192,9 +162,7 @@ const HomePage: React.FC = () => {
                 dataIndex: 'description',
               },
             }}
-            pagination={{
-              pageSize: 5,
-            }}
+            pagination={false}
           />
         </ProCard>
         <ProCard title="更新日志">

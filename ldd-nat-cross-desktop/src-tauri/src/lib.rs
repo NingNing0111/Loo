@@ -38,7 +38,10 @@ pub fn run() {
             command::config::add_server_config,
             command::config::page_server_config,
             command::config::add_proxy_config_batch,
-            command::config::page_proxy_config
+            command::config::page_proxy_config,
+            command::config::del_server_config,
+            command::config::del_proxy_config,
+            command::config::ping
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
