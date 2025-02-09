@@ -1,6 +1,6 @@
 # 项目介绍
 
-&emsp;Loo 是一款基于 SpringBoot3.x+Netty+Protobuf 实现的内网穿透工具，支持多个客户端接入同一个服务端。
+&emsp;Loo 是一款操作简单的内网穿透工具，支持多个客户端接入同一个服务端。
 
 ### 核心功能(开发中)
 
@@ -15,6 +15,8 @@
 &emsp;C/S 端都是基于 SpringBoot 实现的，因此配置文件格式与 SpringBoot 配置文件无异。
 
 #### 服务端:
+
+
 
 ```yaml
 server:
@@ -80,3 +82,15 @@ java -jar client.jar
 ![](doc/images/setting-light.png)
 ![](doc/images/home-dark.png)
 ![](doc/images/home-compact.png)
+
+
+## 技术栈说明
+
+- 底层协议: `Protobuf`
+- 服务端：`SpringBoot、Netty、SpringSecurity、MySQL`
+- 客户端(Rust)：`Tauri、Tokio、React、Umi.js`
+
+## 架构图
+
+![](doc/images/system-struct.png)
+
