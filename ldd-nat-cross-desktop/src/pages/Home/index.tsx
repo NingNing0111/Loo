@@ -5,8 +5,11 @@ import { ReactComponent as SvgConfiguration } from '@/icons/home/Configuration.s
 import { ReactComponent as SvgError } from '@/icons/home/Error.svg';
 import { ReactComponent as SvgServer } from '@/icons/home/Server.svg';
 import { ReactComponent as SvgSuccess } from '@/icons/home/Success.svg';
-import { HomeCntInfo } from '@/models/types';
+import { BasePageParam, DEFAULT_PAGE_PARAM, HomeCntInfo } from '@/models/types';
 
+import { ConnectLog, pageLogs } from '@/command/log';
+import OutlinkButton from '@/components/OutlinkButton/OutlinkButton';
+import { formatTimestamp } from '@/utils/time';
 import {
   PageContainer,
   ProCard,
@@ -14,6 +17,7 @@ import {
   ProList,
   StatisticCard,
 } from '@ant-design/pro-components';
+import { Tag } from 'antd';
 import { useEffect, useState } from 'react';
 
 type StatisticCardType = {
@@ -24,14 +28,28 @@ type StatisticCardType = {
 
 const HomePage: React.FC = () => {
   const [homeCntInfo, setHomeCntInfo] = useState<HomeCntInfo>();
+  const [logPageParam, setLogPageParam] =
+    useState<BasePageParam>(DEFAULT_PAGE_PARAM);
+  const [connectLogList, setConnectLogList] = useState<ConnectLog[]>();
+  const [logTotal, setLogTotal] = useState<number>(0);
+
   const loadHomeInfo = async () => {
     let res = await getHomeInfo();
     if (res.code === 0) {
       setHomeCntInfo(res.data);
     }
   };
+  const loadConnectLogList = async () => {
+    let res = await pageLogs(logPageParam.page, logPageParam.pageSize);
+    if (res.code === 0) {
+      let pageData = res.data;
+      setConnectLogList(pageData.records);
+      setLogTotal(pageData.total);
+    }
+  };
   useEffect(() => {
     loadHomeInfo();
+    loadConnectLogList();
   }, []);
 
   // 卡片统计信息
@@ -68,7 +86,7 @@ const HomePage: React.FC = () => {
     },
     lastUpdateTime: new Date(),
     version: '1.0.0',
-    introduce: '一款方便、简洁的内网穿透工具',
+    introduce: '一款使用方便、界面简洁的内网穿透工具',
   };
 
   // 功能特性
@@ -81,27 +99,7 @@ const HomePage: React.FC = () => {
     {
       id: '2',
       name: '配置管理',
-      descriptionInfo: '配置的增删改查管理，支持网络连接测试',
-    },
-  ];
-
-  // 日志内容
-  const logInfo = [
-    {
-      id: '1',
-      type: 'Future',
-      version: '1.0.0',
-      description: '初始化项目',
-      issue: 'https://example.com',
-      updateTime: new Date(),
-    },
-    {
-      id: '2',
-      type: 'Bug',
-      version: '1.0.1',
-      issue: 'https://example.com',
-      description: '修复bug',
-      updateTime: new Date(),
+      description: '配置的增删改查管理，支持网络连接测试',
     },
   ];
 
@@ -128,18 +126,25 @@ const HomePage: React.FC = () => {
       >
         <ProCard title="开发信息">
           <ProDescriptions column={1} dataSource={descriptionInfo}>
-            <ProDescriptions.Item label="作者">
-              <a href={descriptionInfo.author.blog}>
-                {descriptionInfo.author.name}
-              </a>
+            <ProDescriptions.Item label="版本号" dataIndex="version" />
+
+            <ProDescriptions.Item label="开发作者">
+              <OutlinkButton
+                href={descriptionInfo.author.blog}
+                name={descriptionInfo.author.name}
+                variant="link"
+              />
             </ProDescriptions.Item>
-            <ProDescriptions.Item label="邮箱" copyable>
+            <ProDescriptions.Item label="联系方式" copyable>
               {descriptionInfo.author.email}
             </ProDescriptions.Item>
-            <ProDescriptions.Item label="仓库" copyable>
-              <a href={descriptionInfo.project}>GitHub</a>
+            <ProDescriptions.Item label="开源仓库" copyable>
+              <OutlinkButton
+                href={descriptionInfo.project}
+                name="Github"
+                variant="link"
+              />
             </ProDescriptions.Item>
-            <ProDescriptions.Item label="版本号" dataIndex="version" />
 
             <ProDescriptions.Item
               label="更新时间"
@@ -165,25 +170,50 @@ const HomePage: React.FC = () => {
             pagination={false}
           />
         </ProCard>
-        <ProCard title="更新日志">
+        <ProCard title="运行日志">
           <ProList
             rowKey={'id'}
-            dataSource={logInfo}
+            dataSource={connectLogList}
             showActions="hover"
             metas={{
               title: {
-                dataIndex: 'description',
+                dataIndex: 'status',
+                render: (data) => {
+                  return (
+                    <>
+                      {data === 1 ? (
+                        <Tag color="success">成功</Tag>
+                      ) : (
+                        <Tag color="red">失败</Tag>
+                      )}
+                    </>
+                  );
+                },
               },
               description: {
-                dataIndex: 'version',
+                dataIndex: 'operation',
+                render: (data) => {
+                  return <>{data === 0 ? '启动穿透' : '关闭穿透'}</>;
+                },
               },
               extra: {
-                dataIndex: 'updateTime',
-                valueType: 'date',
+                dataIndex: 'createdTime',
+                render: (data: number) => {
+                  return <span>{formatTimestamp(data * 1000)}</span>;
+                },
               },
             }}
             pagination={{
-              pageSize: 5,
+              pageSize: logPageParam.pageSize,
+              current: logPageParam.page,
+              total: logTotal,
+              align: 'center',
+              onChange: (page, pageSize) => {
+                logPageParam.page = page;
+                logPageParam.pageSize = pageSize;
+                setLogPageParam(logPageParam);
+                loadConnectLogList();
+              },
             }}
           />
         </ProCard>

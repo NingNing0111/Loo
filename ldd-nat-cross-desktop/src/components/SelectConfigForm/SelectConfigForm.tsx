@@ -12,6 +12,7 @@ interface Props {
   data: LocalProxyConfig[] | ServerConfig[];
   keyHost: 'host' | 'serverHost';
   keyPort: 'port' | 'serverPort';
+  initialValue?: any;
   onFinish: (formData: any) => Promise<any>;
 }
 
@@ -58,6 +59,7 @@ const SelectConfigForm: React.FC<Props> = (props) => {
         name="ids"
         label={props.label}
         placeholder={props.placeholder}
+        initialValue={props.initialValue}
         mode="multiple"
         fieldProps={{
           maxCount: props.maxCount,

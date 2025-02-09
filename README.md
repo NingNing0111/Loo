@@ -1,10 +1,11 @@
 # 项目介绍
 
-&emsp;ldd-nat-cross 是一款基于 SpringBoot3.x+Netty+Protobuf 实现的内网穿透工具，支持多个客户端接入同一个服务端。
+&emsp;Loo 是一款基于 SpringBoot3.x+Netty+Protobuf 实现的内网穿透工具，支持多个客户端接入同一个服务端。
 
 ### 核心功能(开发中)
 
 - [x] TCP 穿透
+- [x] 桌面端客户端
 - [ ] UDP 穿透
 - [ ] C/S 端监控
 - [ ] admin 端的操作控制
@@ -72,8 +73,10 @@ java -jar client.jar
 
 #### 客户端(桌面版)
 
-![](doc/images/home.png)
-
-![](doc/images/proxy.png)
-
-![](doc/images/config.png)
+![](doc/images/home-light.png)
+![](doc/images/proxy-light.png)
+![](doc/images/config-light.png)
+![](doc/images/run-light.png)
+![](doc/images/setting-light.png)
+![](doc/images/home-dark.png)
+![](doc/images/home-compact.png)

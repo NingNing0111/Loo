@@ -17,3 +17,7 @@ export const startApp = async (
 export const stopApp = async (): Promise<CommandResult> => {
   return await invoke('stop_app');
 };
+
+export const lastAppConfig = async (): Promise<CommandResult> => {
+  return await invoke('last_config');
+};

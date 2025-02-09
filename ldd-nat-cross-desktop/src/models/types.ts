@@ -38,3 +38,9 @@ export const DEFAULT_PAGE_PARAM: BasePageParam = {
   page: 1,
   pageSize: 5,
 };
+
+export interface SettingInfo {
+  theme: 'dark' | 'light'; // 主题
+  language: string; // 语言
+  compact: boolean; // 紧凑模式
+}

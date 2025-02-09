@@ -1,14 +1,15 @@
 import { defineConfig } from '@umijs/max';
 
 export default defineConfig({
-  antd: {
-    dark: false,
-  },
   access: {},
   model: {},
   initialState: {},
   request: {},
   layout: {},
+  antd: {
+    configProvider: {},
+    compact: false,
+  },
   routes: [
     {
       path: '/',

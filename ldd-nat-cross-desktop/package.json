@@ -16,6 +16,7 @@
     "@ant-design/icons": "^5.6.0",
     "@ant-design/pro-components": "^2.4.4",
     "@tauri-apps/api": "^2.2.0",
+    "@tauri-apps/plugin-shell": "^2.2.0",
     "@umijs/max": "^4.4.4",
     "antd": "^5.4.0",
     "dayjs": "^1.11.13"
