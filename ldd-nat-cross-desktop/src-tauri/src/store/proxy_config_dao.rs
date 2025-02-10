@@ -111,14 +111,12 @@ impl ProxyConfigDAO {
 
     /// 更新配置
     pub fn update_by_id(&self, new_config: ProxyConfigDO) -> Result<usize, Box<dyn Error>> {
-        let set_columns = ["host", "port", "open_port", "protocol", "created_time"];
-        let now_timestamp = now_timestamp();
-        let set_values: [&dyn ToSql; 5] = [
+        let set_columns = ["host", "port", "open_port", "protocol"];
+        let set_values: [&dyn ToSql; 4] = [
             &new_config.host,
             &new_config.port,
             &new_config.open_port,
             &new_config.protocol,
-            &now_timestamp,
         ];
         let where_values: [&dyn ToSql; 1] = [&new_config.id];
 

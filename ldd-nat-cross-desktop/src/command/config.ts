@@ -91,3 +91,15 @@ export const ping = async (
 ): Promise<CommandResult> => {
   return await invoke('ping', { host, port, protocol });
 };
+
+export const updateServerConfig = async (
+  serverConfig: ServerConfig,
+): Promise<CommandResult> => {
+  return await invoke('update_server_config', { serverConfig });
+};
+
+export const updateProxyConfig = async (
+  proxyConfig: LocalProxyConfig,
+): Promise<CommandResult> => {
+  return await invoke('update_proxy_config', { proxyConfig });
+};

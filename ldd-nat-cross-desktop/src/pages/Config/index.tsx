@@ -6,8 +6,11 @@ import {
   pageProxyConfig,
   pageServerConfig,
   ping,
+  updateProxyConfig,
+  updateServerConfig,
 } from '@/command/config';
 import AddConfigForm from '@/components/AddConfigForm';
+import EditConfigForm from '@/components/EditConfigForm';
 import OperationConfirm from '@/components/OperationConfirm';
 import {
   BasePageParam,
@@ -16,7 +19,11 @@ import {
   ServerConfig,
 } from '@/models/types';
 import { formatTimestamp } from '@/utils/time';
-import { DownloadOutlined, ReloadOutlined } from '@ant-design/icons';
+import {
+  DownloadOutlined,
+  PlusCircleFilled,
+  ReloadOutlined,
+} from '@ant-design/icons';
 import {
   PageContainer,
   ProCard,
@@ -99,6 +106,29 @@ const ConfigPage: React.FC = () => {
     }
   };
 
+  const editServer = async (serverConfig: ServerConfig) => {
+    let res = await updateServerConfig(serverConfig);
+    if (res.code === 0) {
+      messageApi.open({
+        type: 'success',
+        content: res.msg,
+      });
+      await loadServerConfig();
+    }
+  };
+
+  const editProxy = async (proxyConfig: LocalProxyConfig) => {
+    let res = await updateProxyConfig(proxyConfig);
+    if (res.code === 0) {
+      messageApi.open({
+        type: 'success',
+        content: res.msg,
+      });
+      await loadProxyConfig();
+    }
+    console.log(proxyConfig);
+  };
+
   const serverConfigColumns: ProColumns<ServerConfig>[] = [
     {
       title: '序号',
@@ -133,11 +163,20 @@ const ConfigPage: React.FC = () => {
       valueType: 'option',
       align: 'center',
       render: (_, record) => [
-        <Button key="edit" type="primary" size="small">
-          编辑
-        </Button>,
+        <EditConfigForm
+          key="editServer"
+          type="server"
+          btnName="编辑"
+          title="编辑服务配置"
+          keyHost="serverHost"
+          keyPort="serverPort"
+          onFinish={async (formData: ServerConfig) =>
+            await editServer({ ...formData, id: record.id })
+          }
+          initialValues={record}
+        />,
         <OperationConfirm
-          key="del"
+          key="delServer"
           title="删除警告"
           description="你确定要删除这条配置信息吗？"
           btnName="删除"
@@ -147,7 +186,7 @@ const ConfigPage: React.FC = () => {
           onConfirm={async () => await delServer(record.id)}
         />,
         <Button
-          key="test"
+          key="testServer"
           variant="solid"
           color="green"
           size="small"
@@ -203,11 +242,20 @@ const ConfigPage: React.FC = () => {
       valueType: 'option',
       align: 'center',
       render: (_, record) => [
-        <Button key="edit" type="primary" size="small">
-          编辑
-        </Button>,
+        <EditConfigForm
+          key="editProxy"
+          type="proxy"
+          btnName="编辑"
+          title="编辑代理配置"
+          keyHost="host"
+          keyPort="port"
+          initialValues={record}
+          onFinish={async (formData: LocalProxyConfig) =>
+            await editProxy({ ...formData, id: record.id })
+          }
+        />,
         <OperationConfirm
-          key="del"
+          key="delProxy"
           title="删除警告"
           description="你确定要删除这条配置信息吗？"
           btnName="删除"
@@ -217,7 +265,7 @@ const ConfigPage: React.FC = () => {
           onConfirm={async () => await delProxy(record.id)}
         />,
         <Button
-          key="test"
+          key="testProxy"
           variant="solid"
           color="green"
           size="small"
@@ -306,7 +354,13 @@ const ConfigPage: React.FC = () => {
               >
                 刷新
               </Button>
-              <AddConfigForm type="server" onFinish={onFinishServerConfig} />
+              <AddConfigForm
+                type="server"
+                title="服务端配置"
+                btnName="服务端配置"
+                btnIcon={<PlusCircleFilled />}
+                onFinish={onFinishServerConfig}
+              />
             </Space>
           }
         >
@@ -347,6 +401,9 @@ const ConfigPage: React.FC = () => {
               </Button>
               <AddConfigForm
                 type="proxy"
+                title="代理配置"
+                btnIcon={<PlusCircleFilled />}
+                btnName="代理配置"
                 onFinish={onFinishProxyConfig}
                 initProxy={[
                   {

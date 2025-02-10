@@ -57,13 +57,11 @@ impl ServerConfigDAO {
 
     /// 更新配置
     pub fn update_by_id(&self, new_config: ServerConfigDO) -> Result<usize, Box<dyn Error>> {
-        let set_columns = ["server_host", "server_port", "password", "created_time"];
-        let now_timestamp = now_timestamp();
-        let set_values: [&dyn ToSql; 4] = [
+        let set_columns = ["server_host", "server_port", "password"];
+        let set_values: [&dyn ToSql; 3] = [
             &new_config.server_host,
             &new_config.server_port,
             &new_config.password,
-            &now_timestamp,
         ];
         let where_values: [&dyn ToSql; 1] = [&new_config.id];
 

@@ -167,3 +167,23 @@ pub async fn ping(host: &str, port: i32, protocol: &str) -> Result<CommandResult
         _ => Ok(CommandResult::err(&format!("无效的网络协议,仅限TCP/UDP"))),
     }
 }
+
+#[tauri::command]
+pub async fn update_server_config(server_config: ServerConfigDO) -> CommandResult<usize> {
+    let server_dao = ServerConfigDAO::new();
+    let res = server_dao
+        .update_by_id(server_config)
+        .map_err(|_| CommandResult::<()>::err("更新服务配置失败"))
+        .unwrap();
+    CommandResult::ok_with_msg_data("更新服务配置成功", res)
+}
+
+#[tauri::command]
+pub async fn update_proxy_config(proxy_config: ProxyConfigDO) -> CommandResult<usize> {
+    let proxy_dao = ProxyConfigDAO::new();
+    let res = proxy_dao
+        .update_by_id(proxy_config)
+        .map_err(|_| CommandResult::<()>::err("更新代理配置失败"))
+        .unwrap();
+    CommandResult::ok_with_msg_data("更新代理配置成功", res)
+}

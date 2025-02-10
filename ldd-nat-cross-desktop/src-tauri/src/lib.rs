@@ -41,6 +41,8 @@ pub fn run() {
             command::config::del_server_config,
             command::config::del_proxy_config,
             command::config::ping,
+            command::config::update_server_config,
+            command::config::update_proxy_config,
             command::setting::get_setting,
             command::setting::update_setting,
             command::setting::reset_setting

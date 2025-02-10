@@ -1,5 +1,4 @@
 import { LocalProxyConfig } from '@/models/types';
-import { PlusOutlined } from '@ant-design/icons';
 import {
   ModalForm,
   ProCard,
@@ -11,25 +10,28 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import { Button, Tag } from 'antd';
+import { ReactNode } from 'react';
 
 interface Props {
   type: 'server' | 'proxy';
   initProxy?: LocalProxyConfig[];
   onFinish: (formData: any) => Promise<any>;
+  title: string;
+  btnName: string;
+  btnIcon?: ReactNode;
 }
 
 const AddConfigForm: React.FC<Props> = (props) => {
   return (
     <ModalForm
-      title="新增配置"
       layout="horizontal"
+      autoFocusFirstInput
+      title={props.title}
       trigger={
-        <Button type="primary">
-          <PlusOutlined />
-          {props.type === 'server' ? '服务配置' : '代理配置'}
+        <Button type="primary" icon={props.btnIcon}>
+          {props.btnName}
         </Button>
       }
-      autoFocusFirstInput
       onFinish={async (formData) => {
         await props.onFinish(formData);
         return true;
