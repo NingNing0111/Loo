@@ -8,12 +8,12 @@ use super::log::LogConfig;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ClientConfig {
-    proxies: Vec<ProxyConfig>,
+    pub proxies: Vec<ProxyConfig>,
     #[serde(rename = "serverHost")]
-    server_host: String,
+    pub server_host: String,
     #[serde(rename = "serverPort")]
-    server_port: i32,
-    password: String,
+    pub server_port: i32,
+    pub password: String,
 }
 
 impl ClientConfig {
@@ -39,7 +39,7 @@ impl ClientConfig {
     }
 
     pub fn get_server_port(&self) -> i32 {
-        self.server_port
+        self.server_port.clone()
     }
 
     pub fn get_password(&self) -> &str {
