@@ -1,3 +1,4 @@
+use anyhow::Result;
 use bytes::Bytes;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -6,14 +7,14 @@ use tokio::{
 };
 
 use crate::{
-    client::LocalManager,
-    common::constants::{LICENSE_KEY, VISITOR_ID},
+    client::manager::LocalManager,
+    common::constants::{APP_ERROR_CODE, LICENSE_KEY, VISITOR_ID},
     core::{cmd_type::CmdType, transfer_message::TransferDataMessage},
     helper::message::{
         build_auth_message, build_connect_message, build_disconnect_message,
         build_open_server_message, build_transfer_message,
     },
-    model::{proxy::ProxyConfig, ClientConfig},
+    model::{command::CommandResult, proxy::ProxyConfig, ClientConfig},
 };
 
 const FRAME_SIZE: usize = 1024 * 8;
@@ -24,7 +25,8 @@ pub async fn client_handler(
     mut shutdown_rx: broadcast::Receiver<()>,
     local_manager: LocalManager,
     config: ClientConfig,
-) -> Result<(), Box<dyn std::error::Error>> {
+    e_tx: mpsc::Sender<CommandResult<()>>,
+) -> Result<()> {
     // 构建认证消息 并发送给服务端
     let auth_message = build_auth_message(&config.get_password());
     s_tx.clone().send(auth_message).await.unwrap();
@@ -33,35 +35,30 @@ pub async fn client_handler(
         loop {
             tokio::select! {
                 Some(server_rsp) = r_rx.recv() => {
-                    let license_key = server_rsp
-                        .meta_data
-                        .as_ref()
-                        .unwrap()
-                        .meta_data
-                        .get(LICENSE_KEY)
-                        .unwrap()
-                        .clone();
                     let cmd_type = server_rsp.cmd_type();
+                    let license_key = match (cmd_type, server_rsp.meta_data.as_ref()) {
+                        (CmdType::AuthErr, _) => None,
+                        (_, Some(meta)) => meta.meta_data.get(LICENSE_KEY),
+                        (_, None) => None,
+                    };
 
                     match cmd_type {
                         CmdType::AuthOk => {
                             let proxys = config.get_proxies();
                             for proxy_config in proxys {
-                                let open_server_msg = build_open_server_message(&proxy_config, license_key.clone());
+                                let open_server_msg = build_open_server_message(&proxy_config, license_key.unwrap().clone());
                                 s_tx.clone()
                                     .send(open_server_msg)
-                                    .await
-                                    .expect("send fail!");
+                                    .await.unwrap();
                             }
                         }
                         CmdType::AuthErr => {
-                            log::error!("服务端认证失败!");
+                            e_tx.send(CommandResult::custom_err("客户端认证失败",APP_ERROR_CODE)).await.unwrap();
                             break;
                         }
                         CmdType::Connect => {
                             // 创建一个新的 channel 用于与 process 任务通信
                             let (p_tx, p_rx) = mpsc::channel::<Bytes>(32);
-
                             let meta_data = server_rsp.meta_data.as_ref().unwrap().meta_data.clone();
                             let proxy_config = ProxyConfig::from_map(meta_data.clone()).unwrap();
                             let visitor_id = meta_data.get(VISITOR_ID).unwrap().clone();
@@ -69,22 +66,20 @@ pub async fn client_handler(
                             local_manager
                                 .put_sender(visitor_id.clone(), p_tx)
                                 .await;
-
                             local_proxy_handler(
                                 proxy_config,
-                                license_key.clone(),
+                                license_key.unwrap().clone(),
                                 visitor_id.clone(),
                                 p_rx,
                                 target_addr.as_str(),
                                 s_tx.clone(),
+                                e_tx.clone()
                             )
-                            .await
-                            .expect("process fail!");
+                            .await.unwrap();
                         }
                         CmdType::Disconnect => {
                             let meta_data = server_rsp.meta_data.as_ref().unwrap().meta_data.clone();
                             let visitor_id = meta_data.get(VISITOR_ID).unwrap().clone();
-                            log::error!("收到 disconnect 消息，visitor_id: {}", visitor_id);
                             // 移除并关闭对应的 sender，通知 process 内部任务退出
                             local_manager.remove_sender(&visitor_id).await;
                         }
@@ -99,7 +94,7 @@ pub async fn client_handler(
                             sender.send(Bytes::from(data)).await.unwrap();
                         }
                         _ => {
-                            log::error!("未知指令类型");
+                            log::error!("未知指令类型:{:?}", server_rsp);
                             break;
                         }
                     };
@@ -123,12 +118,17 @@ async fn local_proxy_handler(
     mut rx: mpsc::Receiver<Bytes>,
     target_addr: &str,
     s_tx: mpsc::Sender<TransferDataMessage>,
-) -> Result<(), Box<dyn std::error::Error>> {
+    e_tx: mpsc::Sender<CommandResult<()>>,
+) -> Result<()> {
     // 建立与目标服务的 TCP 连接，并拆分为读写半部
     let target_connect = match TcpStream::connect(target_addr).await {
         Ok(stream) => stream,
         Err(e) => {
-            log::error!("连接目标服务失败: {:?}", e);
+            e_tx.send(CommandResult::custom_err(
+                &format!("连接目标服务失败: {:?}", e),
+                APP_ERROR_CODE,
+            ))
+            .await?;
             // 发送disconnect
             let disconnect_msg = build_disconnect_message(license_key.clone(), visitor_id.clone());
             s_tx.send(disconnect_msg).await?;

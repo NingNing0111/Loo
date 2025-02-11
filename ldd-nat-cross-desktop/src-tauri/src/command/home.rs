@@ -11,6 +11,7 @@ pub fn count_info() -> CommandResult<HomeCntInfo> {
     let server_dao = ServerConfigDAO::new();
     let proxy_dao = ProxyConfigDAO::new();
     let log_dao = ConnectLogDAO::new();
+
     let server_cnt = match server_dao.count() {
         Ok(c) => c,
         Err(_) => 0,

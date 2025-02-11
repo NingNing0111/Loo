@@ -48,7 +48,6 @@ export async function getInitialState(): Promise<{
 
 export const layout: RunTimeLayoutConfig = (initial) => {
   const { initialState, setInitialState } = initial;
-
   const updateSetting = async (formData: SettingInfo) => {
     await updateSettingInfo(formData);
     if (
@@ -65,14 +64,13 @@ export const layout: RunTimeLayoutConfig = (initial) => {
   };
 
   return {
-    title: 'Ldd-Nat-Cross',
+    title: 'Loo',
     logo: 'https://img.alicdn.com/tfs/TB1YHEpwUT1gK0jSZFhXXaAtVXa-28-27.svg',
     menu: {
       locale: false,
       type: 'group',
       collapsedShowTitle: true,
     },
-    theme: 'dark',
     fixSiderbar: true,
     collapsed: false,
     collapsedButtonRender: false,

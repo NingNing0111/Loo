@@ -1,8 +1,10 @@
-use std::{collections::HashMap, error::Error, sync::Arc};
-
-use bytes::{Bytes, BytesMut};
-use log::info;
+pub mod manager;
+use anyhow::Result;
+use bytes::BytesMut;
+use manager::LocalManager;
 use prost::Message;
+use std::{error::Error, sync::Arc};
+use tauri::{AppHandle, Emitter, EventTarget};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
@@ -10,58 +12,48 @@ use tokio::{
 };
 
 use crate::{
-    core::transfer_message::TransferDataMessage, handler::client_handler, model::ClientConfig,
+    common::constants::SERVER_ERROR_CODE,
+    core::transfer_message::TransferDataMessage,
+    handler::client_handler,
+    model::{command::CommandResult, ClientConfig},
 };
 
 const FRAME_SIZE: usize = 1024 * 8;
 
-#[derive(Debug, Clone)]
-pub struct LocalManager {
-    senders: Arc<Mutex<HashMap<String, mpsc::Sender<Bytes>>>>,
-}
-
-impl LocalManager {
-    pub fn new() -> Self {
-        LocalManager {
-            senders: Arc::new(Mutex::new(HashMap::new())),
-        }
-    }
-
-    pub async fn put_sender(&self, visitor_id: String, sender: mpsc::Sender<Bytes>) {
-        let mut senders = self.senders.lock().await;
-        senders.insert(visitor_id, sender);
-    }
-
-    pub async fn get_sender(&self, visitor_id: &str) -> Option<mpsc::Sender<Bytes>> {
-        let senders = self.senders.lock().await;
-        senders.get(visitor_id).cloned()
-    }
-
-    pub async fn remove_sender(&self, visitor_id: &str) {
-        let mut senders = self.senders.lock().await;
-        if senders.remove(visitor_id).is_some() {
-            log::info!("关闭 visitor_id {} 对应的通道", visitor_id);
-        }
-    }
-}
-
 pub struct ClientApp {
     config: ClientConfig,
-    local_manager: Mutex<LocalManager>,
-    shutdown_tx: broadcast::Sender<()>,
+    local_manager: Arc<Mutex<LocalManager>>,
+    shutdown_tx: Arc<broadcast::Sender<()>>,
+    e_tx: mpsc::Sender<CommandResult<()>>,
+    e_rx: Arc<Mutex<mpsc::Receiver<CommandResult<()>>>>,
 }
 
 impl ClientApp {
     pub fn new(config: ClientConfig) -> Self {
-        let (shutdown_tx, _) = broadcast::channel(16);
+        // shutdown 广播
+        let (shutdown_tx, _) = broadcast::channel(4);
+        let (e_tx, e_rx) = mpsc::channel::<CommandResult<()>>(4);
         ClientApp {
             config,
-            local_manager: Mutex::new(LocalManager::new()),
-            shutdown_tx,
+            local_manager: Arc::new(Mutex::new(LocalManager::new())),
+            shutdown_tx: Arc::new(shutdown_tx),
+            e_tx,
+            e_rx: Arc::new(Mutex::new(e_rx)),
         }
     }
 
-    pub async fn start(&mut self) -> Result<(), Box<dyn Error>> {
+    pub async fn start(&mut self) -> Result<()> {
+        // 客户端向服务端写回数据时用到的channel
+        let (s_tx, mut s_rx) = mpsc::channel::<TransferDataMessage>(32);
+        // 客户端从服务端读取数据时用到的channel
+        let (r_tx, r_rx) = mpsc::channel::<TransferDataMessage>(32);
+        // 错误通道
+        let e_tx1 = self.e_tx.clone();
+        let e_tx2 = self.e_tx.clone();
+        let mut shutdown_rx1 = self.shutdown_tx.subscribe();
+        let mut shutdown_rx2 = self.shutdown_tx.subscribe();
+        let shutdown_rx3 = self.shutdown_tx.subscribe();
+
         let config = self.config.clone();
         let server_host = config.get_server_host();
         let server_port = config.get_server_port();
@@ -69,26 +61,23 @@ impl ClientApp {
         let server_channel = match TcpStream::connect(server_addr).await {
             Ok(channel) => channel,
             Err(e) => {
-                log::error!("服务端连接失败: {:?}", e);
+                self.e_tx
+                    .send(CommandResult::custom_err(
+                        "无法与服务端建立连接",
+                        SERVER_ERROR_CODE,
+                    ))
+                    .await
+                    .unwrap();
                 return Err(e.into());
             }
         };
         let (mut s_reader, mut s_writer) = server_channel.into_split();
-        // 客户端向服务端写回数据时用到的channel
-        let (s_tx, mut s_rx) = mpsc::channel::<TransferDataMessage>(32);
-        // 客户端从服务端读取数据时用到的channel
-        let (r_tx, r_rx) = mpsc::channel::<TransferDataMessage>(32);
-
-        let mut shutdown_rx1 = self.shutdown_tx.subscribe();
-        let mut shutdown_rx2 = self.shutdown_tx.subscribe();
-        let shutdown_rx3 = self.shutdown_tx.subscribe();
 
         // 接收消息 并发送到服务端
         tokio::spawn(async move {
             loop {
                 tokio::select! {
                     Some(msg) = s_rx.recv() => {
-                        log::info!("send to server: {:?}", msg);
                         let mut w_msg = BytesMut::with_capacity(FRAME_SIZE);
                         msg.encode_length_delimited(&mut w_msg).unwrap();
                         s_writer.write_all(&w_msg).await.unwrap();
@@ -105,18 +94,19 @@ impl ClientApp {
         tokio::spawn(async move {
             loop {
                 let mut buffer = [0; FRAME_SIZE];
+
                 tokio::select! {
                     result = s_reader.read(&mut buffer) => {
                         match result {
                             Ok(n) if n == 0 => {
                                 log::info!("服务端连接关闭");
+                                e_tx2.send(CommandResult::custom_err("连接断开", SERVER_ERROR_CODE)).await.unwrap();
                                 break;
                             },
                             Ok(n) => {
                                 let mut read_buf: BytesMut = BytesMut::with_capacity(FRAME_SIZE);
                                 read_buf.extend_from_slice(&buffer[..n]);
                                 let server_rsp = TransferDataMessage::decode_length_delimited(read_buf).unwrap();
-                                info!("response from server: {:?}", server_rsp);
                                 r_tx.send(server_rsp).await.unwrap();
                             },
                             Err(e) => {
@@ -137,16 +127,15 @@ impl ClientApp {
         });
 
         // 核心处理业务
-        let _ = client_handler(
+        client_handler(
             s_tx.clone(),
             r_rx,
             shutdown_rx3,
             self.local_manager.lock().await.clone(),
             config,
+            e_tx1,
         )
-        .await;
-
-        Ok(())
+        .await
     }
 
     /// 使用广播通知所有任务停止，并关闭所有代理连接
@@ -169,6 +158,38 @@ impl ClientApp {
                 .await;
             log::info!("已关闭 visitor_id {} 对应的代理连接", visitor_id);
         }
+
+        Ok(())
+    }
+
+    ///
+    /// 错误处理
+    /// 内网穿透程序执行过程中可能会出现错误 根据具体的错误类型 通知给前端 前端进行监听进行响应的处理
+    pub async fn listener_err(&self, app: AppHandle) -> Result<()> {
+        let app = app.clone();
+        // 克隆 Arc，避免引用 `self` 导致生命周期问题
+        let e_rx: Arc<Mutex<mpsc::Receiver<CommandResult<()>>>> = Arc::clone(&self.e_rx);
+        let mut shutdown_rx = self.shutdown_tx.subscribe();
+
+        tokio::spawn(async move {
+            let mut e_rx = e_rx.lock().await; // 锁定并获得接收器的所有权
+            loop {
+                tokio::select! {
+                    // 处理错误事件，收到数据时
+                    Some(err_payload) = e_rx.recv() => {
+                        log::error!("{:?}",err_payload);
+                        if let Err(e) = app.emit_to(EventTarget::webview("app_err_handler"), "app_err_handler", err_payload) {
+                            log::error!("Failed to emit error event: {:?}", e);
+                        }
+                    },
+                    // 监听关机信号
+                    _ = shutdown_rx.recv() => {
+                        log::info!("Shutting down error listener...");
+                        break;
+                    },
+                }
+            }
+        });
 
         Ok(())
     }

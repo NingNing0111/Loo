@@ -38,7 +38,7 @@ public class ProcessDisconnectMessageService implements ProcessMessageService {
         String licenseKey = metaDataMap.get(Constants.LICENSE_KEY);
         String visitorId = metaDataMap.get(Constants.VISITOR_ID);
         ChannelHandlerContext visitorCtx = serverManager.getVisitorCtx(visitorId);
-        visitorCtx.close();
+        visitorCtx.channel().close();
         serverManager.removeVisitorCtx(visitorId);
         TransferDataMessageHelper helper = new TransferDataMessageHelper(licenseKey);
         TransferDataMessage disconnectMessage = helper.buildDisconnectMessage(ProxyConfig.fromMap(metaDataMap), visitorId);

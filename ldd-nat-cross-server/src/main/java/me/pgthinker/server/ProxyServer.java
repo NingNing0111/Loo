@@ -1,20 +1,14 @@
 package me.pgthinker.server;
 
-import cn.hutool.system.OsInfo;
-import cn.hutool.system.RuntimeInfo;
-import cn.hutool.system.SystemUtil;
 import io.netty.channel.nio.NioEventLoopGroup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.pgthinker.config.AppConfig;
 import me.pgthinker.config.ServerConfig;
 import me.pgthinker.core.initializer.ServerInitializer;
 import me.pgthinker.net.TcpServer;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.ExecutionException;
 
 /**
  * @Project: me.pgthinker.server

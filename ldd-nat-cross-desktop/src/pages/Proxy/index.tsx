@@ -4,11 +4,11 @@ import { ReactComponent as SvgNetworkDisconnect } from '@/icons/proxy/NetworkDis
 import { ReactComponent as SvgNetworkTest } from '@/icons/proxy/NetworkTest.svg';
 
 import { pageProxyConfig, pageServerConfig } from '@/command/config';
-import { addConnectLog } from '@/command/log';
 import SelectConfigForm from '@/components/SelectConfigForm';
 import { EMPTY_SERVER_INFO } from '@/models/proxy';
 import {
   BasePageParam,
+  CommandResult,
   DEFAULT_PAGE_PARAM,
   LocalProxyConfig,
   ServerConfig,
@@ -22,6 +22,7 @@ import {
   ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
+import { listen } from '@tauri-apps/api/event';
 import { useModel } from '@umijs/max';
 import { Button, Empty, Flex, message, Switch, Tag, Tooltip } from 'antd';
 import { useEffect, useState } from 'react';
@@ -134,6 +135,14 @@ const ProxyPage: React.FC = () => {
   useEffect(() => {
     loadServerConfig();
     loadProxyConfig();
+    listen<CommandResult>('app_err_handler', (event) => {
+      if (event.payload.code !== 0) {
+        messageApi.error({
+          content: event.payload.err,
+        });
+        setIsStart(false);
+      }
+    });
   }, []);
 
   const toggleVisible = () => {
@@ -166,41 +175,31 @@ const ProxyPage: React.FC = () => {
       ...serverConfig,
       proxies,
     };
-    let status = 0;
+    // let status = 0;
     let res = await startApp(app_config);
     if (res.code === 0) {
       setIsStart(true);
-      messageApi.open({
-        type: 'success',
-        content: res.msg,
-      });
-      status = 1;
-    } else {
-      setIsStart(false);
-      messageApi.open({
-        type: 'error',
-        content: res.err,
-      });
+      // status = 1;
     }
     // 插入连接日志
-    await addConnectLog({
-      serverId: serverConfig.id as number,
-      proxyIds: proxies.map((item) => item.id as number),
-      operation: 0,
-      status: status,
-      connectedTime: Date.now(),
-    });
+    // await addConnectLog({
+    //   serverId: serverConfig.id as number,
+    //   proxyIds: proxies.map((item) => item.id as number),
+    //   operation: 0,
+    //   status: status,
+    //   connectedTime: Date.now(),
+    // });
   };
 
   const stop = async () => {
     let res = await stopApp();
-    let status = 0;
+    // let status = 0;
     if (res.code === 0) {
       messageApi.open({
         type: 'success',
         content: res.msg,
       });
-      status = 1;
+      // status = 1;
     } else {
       messageApi.open({
         type: 'error',
@@ -208,14 +207,14 @@ const ProxyPage: React.FC = () => {
       });
     }
     setIsStart(false);
-    // 插入断开连接日志
-    await addConnectLog({
-      serverId: serverConfig.id as number,
-      proxyIds: proxies.map((item) => item.id as number),
-      operation: 1,
-      status,
-      connectedTime: Date.now(),
-    });
+    // // 插入断开连接日志
+    // await addConnectLog({
+    //   serverId: serverConfig.id as number,
+    //   proxyIds: proxies.map((item) => item.id as number),
+    //   operation: 1,
+    //   status,
+    //   connectedTime: Date.now(),
+    // });
   };
 
   const onApp = async () => {

@@ -30,3 +30,13 @@ pub const VISITOR_ID: &str = "visitor_id";
  * 消息
  */
 pub const MESSAGE: &str = "message";
+
+/**
+ * 服务端处的错误代码
+ */
+pub const SERVER_ERROR_CODE: i32 = 10;
+
+/**
+ * 客户端处的错误代码
+ */
+pub const APP_ERROR_CODE: i32 = 100;

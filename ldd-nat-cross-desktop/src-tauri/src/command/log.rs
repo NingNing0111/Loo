@@ -5,7 +5,6 @@ use crate::{
 
 #[tauri::command]
 pub fn add_connect_log(log: ConnectLogDO) -> CommandResult<Option<ConnectLogDO>> {
-    println!("{:?}", log);
     let log_dao = ConnectLogDAO::new();
     let id = log_dao.insert(log).unwrap();
     match log_dao.find_by_id(id) {

@@ -206,6 +206,8 @@ const HomePage: React.FC = () => {
             pagination={{
               pageSize: logPageParam.pageSize,
               current: logPageParam.page,
+              size: 'small',
+              simple: true,
               total: logTotal,
               align: 'center',
               onChange: (page, pageSize) => {
