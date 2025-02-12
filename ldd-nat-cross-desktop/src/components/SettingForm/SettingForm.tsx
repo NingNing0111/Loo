@@ -53,7 +53,7 @@ const SettingForm: React.FC<Props> = (props) => {
     <ModalForm
       title={props.title}
       layout="horizontal"
-      trigger={<Button icon={<SettingTwoTone />}></Button>}
+      trigger={<Button size="small" icon={<SettingTwoTone />}></Button>}
       autoFocusFirstInput
       onFinish={onFinish}
       initialValues={props.initialValues}

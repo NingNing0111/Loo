@@ -1,29 +1,25 @@
+use crate::client::ClientApp;
 use std::sync::Arc;
-
-use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
 
-use crate::client::ClientApp;
-
-pub const APP_NAME: &str = "ldd-nat-cross";
 pub const CONFIG_DB: &str = "config.db";
 pub const LOG_DB: &str = "log.db";
 pub const USER_DB: &str = "user.db";
 
-// 使用 Arc<Mutex<Option<ClientApp>>> 来存储 ClientApp
-// 使用 tokio::sync::Mutex 让 ClientApp 可以在异步任务中安全访问
 pub struct AppState {
     pub client: Arc<Mutex<Option<ClientApp>>>,
-    pub name: Arc<Option<String>>,
+    pub name: String,
 }
 
 impl AppState {
-    fn new() -> Self {
+    pub fn new(app_name: impl Into<String>) -> Self {
         Self {
             client: Arc::new(Mutex::new(None)),
-            name: Arc::new(Some(String::from(APP_NAME))),
+            name: app_name.into(),
         }
     }
-}
 
-pub static APP_STATE: Lazy<AppState> = Lazy::new(|| AppState::new());
+    pub fn app_name(&self) -> &str {
+        &self.name
+    }
+}

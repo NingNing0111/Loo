@@ -1,3 +1,5 @@
+use global::AppState;
+use once_cell::sync::Lazy;
 use sys::init_app_dir;
 
 pub mod client;
@@ -11,6 +13,7 @@ pub mod model;
 pub mod store;
 pub mod sys;
 pub mod utils;
+pub static APP_STATE: Lazy<AppState> = Lazy::new(|| AppState::new("loo".to_string()));
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -24,6 +27,7 @@ pub fn run() {
                         .build(),
                 )?;
             }
+
             init_app_dir();
             Ok(())
         })

@@ -1,6 +1,6 @@
 use std::{env, fs, path::PathBuf};
 
-use crate::global::APP_NAME;
+use crate::APP_STATE;
 
 pub fn init_app_dir() {
     let app_dir = get_app_dir();
@@ -12,7 +12,8 @@ pub fn init_app_dir() {
 
 pub fn get_app_dir() -> PathBuf {
     let mut user_dir = dirs::home_dir().unwrap_or_else(|| env::temp_dir());
-    user_dir.push(format!(".{}", APP_NAME));
+    let app_name = APP_STATE.app_name();
+    user_dir.push(format!(".{}", app_name));
     user_dir
 }
 

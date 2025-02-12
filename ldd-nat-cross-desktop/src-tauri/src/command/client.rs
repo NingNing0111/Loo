@@ -2,12 +2,12 @@ use tauri::AppHandle;
 
 use crate::{
     client::ClientApp,
-    global::APP_STATE,
     model::{command::CommandResult, dto::AppConfig, ClientConfig},
     store::{
         connect_log_dao::ConnectLogDAO, model::config::ProxyConfigDO,
         proxy_config_dao::ProxyConfigDAO, server_config_dao::ServerConfigDAO,
     },
+    APP_STATE,
 };
 
 // 启动应用
