@@ -7,6 +7,8 @@ import { userInfo } from './services/authController';
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
 export async function getInitialState(): Promise<API.LoginUserVO> {
   const res = await userInfo();
+  console.log(res);
+
   if (res) {
     return res;
   } else {

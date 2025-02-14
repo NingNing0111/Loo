@@ -2,12 +2,13 @@ use std::{env, fs, path::PathBuf};
 
 use crate::APP_STATE;
 
-pub fn init_app_dir() {
+pub fn init_app_dir() -> PathBuf {
     let app_dir = get_app_dir();
 
     if !app_dir.exists() {
         fs::create_dir_all(&app_dir).ok(); // 创建应用目录
     }
+    app_dir
 }
 
 pub fn get_app_dir() -> PathBuf {

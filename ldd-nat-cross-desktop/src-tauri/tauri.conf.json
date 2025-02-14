@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "ldd-nat-cross-desktop",
+  "productName": "Loo",
   "version": "0.1.0",
   "identifier": "me.pgthinker.ldd-desktop.app",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "ldd-desktop",
+        "title": "Loo",
         "width": 1400,
         "height": 900,
         "resizable": true,

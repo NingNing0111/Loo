@@ -25,6 +25,7 @@ export default defineConfig({
       path: '/home',
       component: './Home',
       access: 'canAccess',
+      wrappers: ['@/wrappers/auth'],
       routes: [
         {
           path: '/home/:serverName',

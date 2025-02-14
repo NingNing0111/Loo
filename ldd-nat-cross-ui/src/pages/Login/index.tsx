@@ -2,6 +2,7 @@ import { auth } from '@/services/authController';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { history, useModel, useNavigate } from '@umijs/max';
+import { useEffect } from 'react';
 
 const LoginPage: React.FC = () => {
   const { setLoginUser, setJwt } = useModel('global');
@@ -16,6 +17,15 @@ const LoginPage: React.FC = () => {
       navigate(0);
     }
   };
+
+  const initUserInfo = async () => {
+    localStorage.removeItem('jwt');
+    console.log('清理数据缓存');
+  };
+
+  useEffect(() => {
+    initUserInfo();
+  }, []);
 
   return (
     <LoginForm

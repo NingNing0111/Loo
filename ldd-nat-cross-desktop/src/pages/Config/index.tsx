@@ -12,6 +12,8 @@ import {
 import AddConfigForm from '@/components/AddConfigForm';
 import EditConfigForm from '@/components/EditConfigForm';
 import OperationConfirm from '@/components/OperationConfirm';
+import OutlinkButton from '@/components/OutlinkButton/OutlinkButton';
+import { APP_CONFIG_FILE_PATH } from '@/constants';
 import {
   BasePageParam,
   DEFAULT_PAGE_PARAM,
@@ -327,9 +329,13 @@ const ConfigPage: React.FC = () => {
           headerBordered
           tooltip="请参考配置文件模板"
           extra={
-            <Button type="primary" shape="round" icon={<DownloadOutlined />}>
-              模板
-            </Button>
+            <OutlinkButton
+              href={APP_CONFIG_FILE_PATH}
+              type="primary"
+              shape="round"
+              icon={<DownloadOutlined />}
+              name="模板"
+            />
           }
         >
           <ProFormUploadDragger
