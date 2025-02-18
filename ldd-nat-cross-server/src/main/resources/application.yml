@@ -6,7 +6,7 @@ server:
 
 # 管理端配置
 admin:
-  enabled: false # 是否接入Admin端
+  enabled: true # 是否接入Admin端
   hostname: localhost # Admin端信息
   port: 7990
 
