@@ -10,6 +10,7 @@ const PROXY_CONFIG_TABLE: &str = "proxy_config";
 const INIT_TABLE_DDL: &str = "
     CREATE TABLE IF NOT EXISTS proxy_config (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        label TEXT NOT NULL,
         host TEXT NOT NULL,
         port INTEGER NOT NULL,
         open_port INTEGER NOT NULL,
@@ -26,25 +27,45 @@ impl ProxyConfigDAO {
         let base_dao = BaseDAO::new(CONFIG_DB, PROXY_CONFIG_TABLE)
             .expect(format!("connect to {} fail!", PROXY_CONFIG_TABLE).as_str());
         let _ = base_dao.execute_ddl(INIT_TABLE_DDL);
+
         ProxyConfigDAO { dao: base_dao }
     }
 
     /// 插入一条数据
     pub fn insert(&self, config: ProxyConfigDO) -> Result<usize, Box<dyn Error>> {
-        let columns = ["host", "port", "open_port", "protocol", "created_time"];
-        let now_timestamp = now_timestamp();
-        let values: [&(dyn ToSql); 5] = [
-            &config.host,
-            &config.port,
-            &config.open_port,
-            &config.protocol,
-            &now_timestamp,
-        ];
-        let i = self
-            .dao
-            .insert(&columns, &values)
-            .expect(format!("Failed to insert data: {:?}", config).as_str());
-        Ok(i)
+        match self.exist_label(config.label.clone()) {
+            Ok(false) => {
+                let columns = [
+                    "label",
+                    "server_host",
+                    "server_port",
+                    "password",
+                    "created_time",
+                ];
+                let now_timestamp = now_timestamp();
+                let values: [&(dyn ToSql); 6] = [
+                    &config.label,
+                    &config.host,
+                    &config.port,
+                    &config.open_port,
+                    &config.protocol,
+                    &now_timestamp,
+                ];
+                let i = self
+                    .dao
+                    .insert(&columns, &values)
+                    .expect(format!("Failed to insert data: {:?}", config).as_str());
+                Ok(i)
+            }
+            _ => {
+                let err_msg = format!(
+                    "Failed to check label exist OR label already exist: {}",
+                    config.label
+                );
+                log::error!("{}", err_msg);
+                return Err(err_msg.into());
+            }
+        }
     }
 
     // 插入多条数据
@@ -55,7 +76,7 @@ impl ProxyConfigDAO {
         }
 
         let sql = format!(
-            "INSERT INTO {} (host, port, open_port, protocol, created_time) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO {} (label, host, port, open_port, protocol, created_time) VALUES (?, ?, ?, ?, ?, ?)",
             PROXY_CONFIG_TABLE
         );
 
@@ -66,6 +87,7 @@ impl ProxyConfigDAO {
             for config in &configs {
                 let now_timestamp = now_timestamp();
                 stmt.execute(params![
+                    &config.label,
                     &config.host,
                     &config.port,
                     &config.open_port,
@@ -130,7 +152,7 @@ impl ProxyConfigDAO {
     /// 根据Id查找
     pub fn find_by_id(&self, config_id: i32) -> Result<Option<ProxyConfigDO>, Box<dyn Error>> {
         let sql = format!(
-            "SELECT id, host, port, open_port, protocol, created_time FROM {} where id = ?",
+            "SELECT id, host, port, open_port, protocol, created_time, label FROM {} where id = ?",
             PROXY_CONFIG_TABLE
         );
         let params: [&dyn ToSql; 1] = [&config_id];
@@ -144,6 +166,7 @@ impl ProxyConfigDAO {
                     open_port: row.get(3)?,
                     protocol: row.get(4)?,
                     create_time: row.get(5)?,
+                    label: row.get(6)?,
                 })
             })
             .expect(format!("Failed to query data by id:{}", config_id).as_str());
@@ -154,10 +177,24 @@ impl ProxyConfigDAO {
         Ok(res)
     }
 
+    pub fn exist_label(&self, label: String) -> Result<bool, Box<dyn Error>> {
+        let sql = format!(
+            "SELECT COUNT(*) FROM {} WHERE label = ?",
+            PROXY_CONFIG_TABLE
+        );
+        let count: i64 = self
+            .dao
+            .query(&sql, &[&label], |row| row.get(0))?
+            .into_iter()
+            .next()
+            .unwrap_or(0); // 获取查询结果
+        Ok(count > 0)
+    }
+
     /// 查找所有记录
     pub fn find_all(&self) -> Result<Vec<ProxyConfigDO>, Box<dyn Error>> {
         let sql = format!(
-            "SELECT id, host, port, open_port, protocol, created_time FROM {}",
+            "SELECT id, host, port, open_port, protocol, created_time, label FROM {}",
             PROXY_CONFIG_TABLE
         );
         let res = self
@@ -170,6 +207,7 @@ impl ProxyConfigDAO {
                     open_port: row.get(3)?,
                     protocol: row.get(4)?,
                     create_time: row.get(5)?,
+                    label: row.get(6)?,
                 })
             })
             .expect("Failed to query all data.");
@@ -183,7 +221,7 @@ impl ProxyConfigDAO {
     ) -> Result<PageResult<ProxyConfigDO>, Box<dyn Error>> {
         let offset = (page - 1) * page_size; // 计算偏移量
         let sql = format!(
-            "SELECT id, host, port, open_port, protocol, created_time
+            "SELECT id, host, port, open_port, protocol, created_time, label
              FROM {} 
              ORDER BY id DESC 
              LIMIT ? OFFSET ?",
@@ -198,6 +236,7 @@ impl ProxyConfigDAO {
                 open_port: row.get(3)?,
                 protocol: row.get(4)?,
                 create_time: row.get(5)?,
+                label: row.get(6)?,
             })
         })?;
         let total = self.count()?;

@@ -24,7 +24,7 @@ import {
 } from '@ant-design/pro-components';
 import { listen } from '@tauri-apps/api/event';
 import { useModel } from '@umijs/max';
-import { Button, Empty, Flex, message, Switch, Tag, Tooltip } from 'antd';
+import { Button, Empty, Flex, message, Switch, Tag } from 'antd';
 import { useEffect, useState } from 'react';
 import './index.less';
 
@@ -158,6 +158,7 @@ const ProxyPage: React.FC = () => {
   };
 
   const onSelectServerConfig = async (value: ServerConfig[]) => {
+    console.log(value);
     if (value.length === 1) {
       setServerConfig(value[0]);
       // 修改全局
@@ -167,6 +168,8 @@ const ProxyPage: React.FC = () => {
   };
 
   const onSelectProxyConfig = async (value: LocalProxyConfig[]) => {
+    console.log(value);
+
     setProxies(value);
   };
 
@@ -297,19 +300,17 @@ const ProxyPage: React.FC = () => {
                     {visible && serverConfig.id
                       ? serverConfig.password
                       : '******'}
-                    <Tooltip title={visible ? '隐藏密码' : '显示密码'}>
-                      {visible ? (
-                        <EyeInvisibleOutlined
-                          onClick={toggleVisible}
-                          style={{ marginLeft: 8, cursor: 'pointer' }}
-                        />
-                      ) : (
-                        <EyeOutlined
-                          onClick={toggleVisible}
-                          style={{ marginLeft: 8, cursor: 'pointer' }}
-                        />
-                      )}
-                    </Tooltip>
+                    {visible ? (
+                      <EyeInvisibleOutlined
+                        onClick={toggleVisible}
+                        style={{ marginLeft: 8, cursor: 'pointer' }}
+                      />
+                    ) : (
+                      <EyeOutlined
+                        onClick={toggleVisible}
+                        style={{ marginLeft: 8, cursor: 'pointer' }}
+                      />
+                    )}
                   </span>
                 ) : (
                   '-'
@@ -352,7 +353,7 @@ const ProxyPage: React.FC = () => {
                     defaultCollapsed
                     bordered
                     headerBordered
-                    title="localhost:3306"
+                    title={item.label}
                     key={item.id}
                   >
                     <ProDescriptions column={1}>

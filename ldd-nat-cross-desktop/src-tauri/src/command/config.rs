@@ -17,6 +17,7 @@ use tokio::{
     net::{TcpStream, UdpSocket},
     time::timeout,
 };
+use uuid::Uuid;
 
 #[tauri::command]
 pub fn add_config(client_config: ClientConfig) -> CommandResult<()> {
@@ -26,6 +27,7 @@ pub fn add_config(client_config: ClientConfig) -> CommandResult<()> {
     // add server config
     let server_config = ServerConfigDO {
         id: None,
+        label: client_config.label.unwrap_or(Uuid::new_v4().to_string()),
         server_host: client_config.server_host,
         server_port: client_config.server_port,
         password: client_config.password,
@@ -43,6 +45,10 @@ pub fn add_config(client_config: ClientConfig) -> CommandResult<()> {
         .into_iter()
         .map(|proxy_config| ProxyConfigDO {
             id: None,
+            label: proxy_config
+                .label
+                .clone()
+                .unwrap_or(Uuid::new_v4().to_string()),
             host: proxy_config.host().to_string(),
             port: proxy_config.port(),
             open_port: proxy_config.open_port(),

@@ -1,5 +1,6 @@
 export interface ServerConfig {
   id?: number;
+  label: string;
   serverHost: string;
   serverPort: number;
   password: string;
@@ -8,6 +9,7 @@ export interface ServerConfig {
 
 export interface LocalProxyConfig {
   id?: number;
+  label: string;
   host: string;
   port: number;
   protocol: string;

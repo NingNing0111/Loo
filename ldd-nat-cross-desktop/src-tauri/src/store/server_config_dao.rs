@@ -10,6 +10,7 @@ const SERVER_CONFIG_TABLE: &str = "server_config";
 const INIT_TABLE_DDL: &str = "
     CREATE TABLE IF NOT EXISTS server_config (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        label TEXT NOT NULL,
         server_host TEXT NOT NULL,
         server_port INTEGER NOT NULL,
         password TEXT NOT NULL,
@@ -30,19 +31,38 @@ impl ServerConfigDAO {
 
     /// 插入一条数据
     pub fn insert(&self, config: ServerConfigDO) -> Result<usize, Box<dyn Error>> {
-        let columns = ["server_host", "server_port", "password", "created_time"];
-        let now_timestamp = now_timestamp();
-        let values: [&(dyn ToSql); 4] = [
-            &config.server_host.as_str(),
-            &config.server_port,
-            &config.password.as_str(),
-            &now_timestamp,
-        ];
-        let i = self
-            .dao
-            .insert(&columns, &values)
-            .expect(format!("Failed to insert data: {:?}", config).as_str());
-        Ok(i)
+        match self.exist_label(config.label.clone()) {
+            Ok(false) => {
+                let columns = [
+                    "label",
+                    "server_host",
+                    "server_port",
+                    "password",
+                    "created_time",
+                ];
+                let now_timestamp = now_timestamp();
+                let values: [&(dyn ToSql); 5] = [
+                    &config.label.as_str(),
+                    &config.server_host.as_str(),
+                    &config.server_port,
+                    &config.password.as_str(),
+                    &now_timestamp,
+                ];
+                let i = self
+                    .dao
+                    .insert(&columns, &values)
+                    .expect(format!("Failed to insert data: {:?}", config).as_str());
+                Ok(i)
+            }
+            _ => {
+                let err_msg = format!(
+                    "Failed to check label exist OR label already exist: {}",
+                    config.label
+                );
+                log::error!("{}", err_msg);
+                return Err(err_msg.into());
+            }
+        }
     }
 
     /// 根据ID删除
@@ -75,7 +95,7 @@ impl ServerConfigDAO {
     /// 根据Id查找
     pub fn find_by_id(&self, config_id: i32) -> Result<Option<ServerConfigDO>, Box<dyn Error>> {
         let sql = format!(
-            "SELECT id, server_host, server_port, password, created_time FROM {} where id = ?",
+            "SELECT id, server_host, server_port, password, created_time,label FROM {} where id = ?",
             SERVER_CONFIG_TABLE
         );
         let params: [&dyn ToSql; 1] = [&config_id];
@@ -88,6 +108,7 @@ impl ServerConfigDAO {
                     server_port: row.get(2)?,
                     password: row.get(3)?,
                     create_time: row.get(4)?,
+                    label: row.get(5)?,
                 })
             })
             .expect(format!("Failed to query data by id:{}", config_id).as_str());
@@ -101,7 +122,7 @@ impl ServerConfigDAO {
     /// 查找所有记录
     pub fn find_all(&self) -> Result<Vec<ServerConfigDO>, Box<dyn Error>> {
         let sql = format!(
-            "SELECT id, server_host, server_port, password, created_time FROM {}",
+            "SELECT id, server_host, server_port, password, created_time,label FROM {}",
             SERVER_CONFIG_TABLE
         );
         let res = self
@@ -113,10 +134,25 @@ impl ServerConfigDAO {
                     server_port: row.get(2)?,
                     password: row.get(3)?,
                     create_time: row.get(4)?,
+                    label: row.get(5)?,
                 })
             })
             .expect("Failed to query all data.");
         Ok(res)
+    }
+
+    pub fn exist_label(&self, label: String) -> Result<bool, Box<dyn Error>> {
+        let sql = format!(
+            "SELECT COUNT(*) FROM {} WHERE label = ?",
+            SERVER_CONFIG_TABLE
+        );
+        let count: i64 = self
+            .dao
+            .query(&sql, &[&label], |row| row.get(0))?
+            .into_iter()
+            .next()
+            .unwrap_or(0); // 获取查询结果
+        Ok(count > 0)
     }
 
     pub fn page(
@@ -126,7 +162,7 @@ impl ServerConfigDAO {
     ) -> Result<PageResult<ServerConfigDO>, Box<dyn Error>> {
         let offset = (page - 1) * page_size; // 计算偏移量
         let sql = format!(
-            "SELECT id, server_host, server_port, password, created_time 
+            "SELECT id, server_host, server_port, password, created_time ,label
              FROM {} 
              ORDER BY id DESC 
              LIMIT ? OFFSET ?",
@@ -140,6 +176,7 @@ impl ServerConfigDAO {
                 server_port: row.get(2)?,
                 password: row.get(3)?,
                 create_time: row.get(4)?, // created_time 可能为 NULL
+                label: row.get(5)?,
             })
         })?;
 

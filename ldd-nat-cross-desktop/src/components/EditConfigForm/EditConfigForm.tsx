@@ -16,6 +16,7 @@ interface Props {
   keyPort: string;
   onFinish: (formData: any) => Promise<any>;
   initialValues: any;
+  size?: 'small' | 'middle' | 'large';
 }
 
 const EditConfigForm: React.FC<Props> = (props) => {
@@ -25,7 +26,7 @@ const EditConfigForm: React.FC<Props> = (props) => {
       autoFocusFirstInput
       title={props.title}
       trigger={
-        <Button type="primary" icon={props.btnIcon}>
+        <Button size={props.size} type="primary" icon={props.btnIcon}>
           {props.btnName}
         </Button>
       }
@@ -35,6 +36,13 @@ const EditConfigForm: React.FC<Props> = (props) => {
       }}
       initialValues={props.initialValues}
     >
+      <ProFormText
+        disabled
+        label="标签"
+        placeholder="请输入标签"
+        vertical
+        width="md"
+      />
       <ProFormText
         label="主机名"
         name={props.keyHost}

@@ -18,21 +18,9 @@ interface Props {
 
 const SelectConfigForm: React.FC<Props> = (props) => {
   let options: any = props.data.map((item) => {
-    if (props.keyHost === 'host' && props.keyPort === 'port') {
-      let s = item as LocalProxyConfig;
-      return {
-        label: (
-          <span>
-            {s.protocol + '/' + s.host + ':' + s.port + ' -> ' + s.openPort}
-          </span>
-        ),
-        value: s.id,
-      };
-    }
-    let s = item as ServerConfig;
     return {
-      label: <span>{s.serverHost + ':' + s.serverPort}</span>,
-      value: s.id,
+      label: item.label,
+      value: item.id,
     };
   });
   return (

@@ -42,6 +42,13 @@ const AddConfigForm: React.FC<Props> = (props) => {
           <ProFormText
             vertical
             width="md"
+            name="label"
+            label="服务端标签"
+            placeholder="请输入服务端标签（唯一）"
+          />
+          <ProFormText
+            vertical
+            width="md"
             name="serverHost"
             label="主机名称"
             placeholder="请输入服务端主机名称"
@@ -89,10 +96,18 @@ const AddConfigForm: React.FC<Props> = (props) => {
             <ProFormText
               vertical
               width="md"
+              name="label"
+              label="代理端标签"
+              placeholder="请输入代理端标签（唯一）"
+            />
+            <ProFormText
+              vertical
+              width="md"
               name="host"
               label="代理主机"
               placeholder="请输入代理主机名称"
             />
+
             <ProFormDigit
               vertical
               width="md"

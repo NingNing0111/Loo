@@ -8,12 +8,13 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ClientConfig {
-    pub proxies: Vec<ProxyConfig>,
+    pub label: Option<String>,
     #[serde(rename = "serverHost")]
     pub server_host: String,
     #[serde(rename = "serverPort")]
     pub server_port: i32,
     pub password: String,
+    pub proxies: Vec<ProxyConfig>,
 }
 
 impl ClientConfig {

@@ -139,6 +139,11 @@ const ConfigPage: React.FC = () => {
       width: 80,
     },
     {
+      title: '标签',
+      dataIndex: 'label',
+      valueType: 'text',
+    },
+    {
       title: '服务主机名',
       dataIndex: 'serverHost',
       valueType: 'text',
@@ -169,6 +174,7 @@ const ConfigPage: React.FC = () => {
           key="editServer"
           type="server"
           btnName="编辑"
+          size="small"
           title="编辑服务配置"
           keyHost="serverHost"
           keyPort="serverPort"
@@ -211,6 +217,11 @@ const ConfigPage: React.FC = () => {
       width: 80,
     },
     {
+      title: '标签',
+      dataIndex: 'label',
+      valueType: 'text',
+    },
+    {
       title: '代理主机名',
       dataIndex: 'host',
       valueType: 'text',
@@ -247,6 +258,7 @@ const ConfigPage: React.FC = () => {
         <EditConfigForm
           key="editProxy"
           type="proxy"
+          size="small"
           btnName="编辑"
           title="编辑代理配置"
           keyHost="host"
@@ -413,6 +425,7 @@ const ConfigPage: React.FC = () => {
                 onFinish={onFinishProxyConfig}
                 initProxy={[
                   {
+                    label: 'Demo',
                     host: 'localhost',
                     port: 3306,
                     protocol: 'tcp',

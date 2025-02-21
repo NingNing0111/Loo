@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ServerConfigDO {
     pub id: Option<i32>,
+    pub label: String,
     #[serde(rename = "serverHost")]
     pub server_host: String,
     #[serde(rename = "serverPort")]
@@ -15,6 +16,7 @@ pub struct ServerConfigDO {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProxyConfigDO {
     pub id: Option<i32>,
+    pub label: String,
     pub host: String,
     pub port: i32,
     #[serde(rename = "openPort")]

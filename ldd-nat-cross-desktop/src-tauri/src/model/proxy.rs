@@ -6,6 +6,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ProxyConfig {
+    pub label: Option<String>,
     host: String,
     port: i32,
     #[serde(rename = "openPort")]
@@ -15,8 +16,15 @@ pub struct ProxyConfig {
 
 impl ProxyConfig {
     /// 构造函数
-    pub fn new(host: String, port: i32, open_port: i32, protocol: ProtocolEnum) -> Self {
+    pub fn new(
+        label: Option<String>,
+        host: String,
+        port: i32,
+        open_port: i32,
+        protocol: ProtocolEnum,
+    ) -> Self {
         Self {
+            label,
             host,
             port,
             open_port,
@@ -59,6 +67,7 @@ impl ProxyConfig {
         let open_port = data.get(constants::OPEN_PORT)?.parse().ok()?;
 
         Some(Self {
+            label: None,
             host,
             port,
             open_port,
