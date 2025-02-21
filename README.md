@@ -16,8 +16,6 @@
 
 #### 服务端:
 
-
-
 ```yaml
 server:
   port: 8964
@@ -83,7 +81,6 @@ java -jar client.jar
 ![](doc/images/home-dark.png)
 ![](doc/images/home-compact.png)
 
-
 ## 技术栈说明
 
 - 底层协议: `Protobuf`
@@ -94,3 +91,12 @@ java -jar client.jar
 
 ![](doc/images/system-struct.png)
 
+## 目录介绍
+
+- ui: 管理端页面
+- admin: 管理端后端
+- core: Java Client/Server 的核心通用模块
+- server: Java 版 Server
+- client: Java 版 Client
+- desktop: 基于 tauri 实现的桌面应用
+- rclient: Rust 版 Client
