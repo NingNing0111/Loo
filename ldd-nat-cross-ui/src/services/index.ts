@@ -5,7 +5,9 @@
 import * as authController from './authController';
 import * as serverInfoController from './serverInfoController';
 import * as serverSystemInfoController from './serverSystemInfoController';
+import * as userController from './userController';
 export default {
+  userController,
   authController,
   serverSystemInfoController,
   serverInfoController,

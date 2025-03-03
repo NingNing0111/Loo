@@ -3,16 +3,15 @@ server:
   servlet:
     context-path: /api
 
-
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/ldd-nat-cross?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/LOO_DB?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true&allowPublicKeyRetrieval=true
     username: root
     password: Zkqa123.com
 
+
 admin:
-  port: 7990
   secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 86400000 # a day
   password: 123456
@@ -31,4 +30,7 @@ springdoc:
     - group: 'default'
       paths-to-match: '/**'
       packages-to-scan: me.pgthinker.controller
-
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: deleted

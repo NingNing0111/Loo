@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -14,23 +15,23 @@ import java.time.LocalDateTime;
  * @Author: NingNing0111
  * @Github: https://github.com/ningning0111
  * @Date: 2024/11/24 23:39
- * @Description:
+ * @Description: 注册的服务信息
  */
 @TableName("server_info")
 @Data
-public class ServerInfoDO implements Serializable {
+@EqualsAndHashCode(callSuper = false)
+public class ServerInfoDO extends BaseDO implements Serializable {
+
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
-    private String serverId;
     private String serverName;
     private String osName;
     private String osArch;
     private String osVersion;
-    private LocalDateTime registerTime;
-    private String ip;
     private String hostname;
-    private Integer port;
 
+    private LocalDateTime registerTime;
+    private Boolean isLive; // 是否存活
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

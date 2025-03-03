@@ -1,6 +1,9 @@
 package me.pgthinker.model.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -12,17 +15,19 @@ import java.time.LocalDateTime;
  * @Description:
  */
 @Data
-public class ServerInfoVO {
+@EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
+@NoArgsConstructor
+public class ServerInfoVO extends PageBaseVO{
     private String id;
-    private String serverId;
     private String serverName;
     private String osName;
     private String osArch;
     private String osVersion;
-    private LocalDateTime registerTime;
-    private String ip;
     private String hostname;
-    private Integer port;
+
+    private LocalDateTime registerTime;
+
     /**
      * 是否存活
      */

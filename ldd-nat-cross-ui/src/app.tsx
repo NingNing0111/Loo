@@ -2,12 +2,13 @@
 import { history } from '@umijs/max';
 import { message } from 'antd';
 import type { RequestConfig } from 'umi';
+import Page403 from './pages/403';
+import Page404 from './pages/404';
 import { userInfo } from './services/authController';
 // 全局初始化数据配置，用于 Layout 用户信息和权限初始化
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
 export async function getInitialState(): Promise<API.LoginUserVO> {
   const res = await userInfo();
-  console.log(res);
 
   if (res) {
     return res;
@@ -23,6 +24,8 @@ export const layout = () => {
     menu: {
       locale: false,
     },
+    unAccessible: <Page403 />,
+    notFound: <Page404 />,
   };
 };
 

@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -22,7 +22,8 @@ import java.util.List;
  */
 @TableName("user")
 @Data
-public class User implements UserDetails {
+@EqualsAndHashCode(callSuper = false)
+public class UserDO extends BaseDO implements UserDetails {
     @TableId(type = IdType.AUTO)
     private Long id;
     private String username;

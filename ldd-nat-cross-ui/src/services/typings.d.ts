@@ -1,13 +1,11 @@
 declare namespace API {
+  type analysisParams = {
+    serverName: string;
+  };
+
   type AuthVO = {
     username?: string;
     password?: string;
-  };
-
-  type BaseResponse = {
-    code?: number;
-    data?: Record<string, any>;
-    message?: string;
   };
 
   type BaseResponseListServerInfoVO = {
@@ -22,16 +20,42 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListSystemInfoVO = {
+    code?: number;
+    data?: SystemInfoVO[];
+    message?: string;
+  };
+
   type BaseResponseLoginUserVO = {
     code?: number;
     data?: LoginUserVO;
     message?: string;
   };
 
+  type BaseResponseLong = {
+    code?: number;
+    data?: number;
+    message?: string;
+  };
+
+  type BaseResponsePageServerInfoVO = {
+    code?: number;
+    data?: PageServerInfoVO;
+    message?: string;
+  };
+
+  type BaseResponsePageUserVO = {
+    code?: number;
+    data?: PageUserVO;
+    message?: string;
+  };
+
   type historyListParams = {
     arg0: ServerInfoVO;
-    arg1: number;
-    arg2: number;
+  };
+
+  type listParams = {
+    arg0: UserVO;
   };
 
   type LoginUserVO = {
@@ -41,27 +65,70 @@ declare namespace API {
     token?: string;
   };
 
+  type OrderItem = {
+    column?: string;
+    asc?: boolean;
+  };
+
+  type PageServerInfoVO = {
+    records?: ServerInfoVO[];
+    total?: number;
+    size?: number;
+    current?: number;
+    orders?: OrderItem[];
+    optimizeCountSql?: PageServerInfoVO;
+    searchCount?: PageServerInfoVO;
+    optimizeJoinOfCountSql?: boolean;
+    maxLimit?: number;
+    countId?: string;
+    pages?: number;
+  };
+
+  type PageUserVO = {
+    records?: UserVO[];
+    total?: number;
+    size?: number;
+    current?: number;
+    orders?: OrderItem[];
+    optimizeCountSql?: PageUserVO;
+    searchCount?: PageUserVO;
+    optimizeJoinOfCountSql?: boolean;
+    maxLimit?: number;
+    countId?: string;
+    pages?: number;
+  };
+
   type ServerInfoVO = {
+    page?: number;
+    pageSize?: number;
     id?: string;
-    serverId?: string;
     serverName?: string;
     osName?: string;
     osArch?: string;
     osVersion?: string;
-    registerTime?: string;
-    ip?: string;
     hostname?: string;
-    port?: number;
+    registerTime?: string;
     isLive?: boolean;
   };
 
   type ServerSystemInfoDO = {
+    createTime?: string;
+    updateTime?: string;
+    deleted?: boolean;
     id?: string;
     serverId?: string;
-    maxMemory?: number;
-    totalMemory?: number;
-    usableMemory?: number;
-    freeMemory?: number;
+    jvmMaxMemory?: number;
+    jvmTotalMemory?: number;
+    jvmUsableMemory?: number;
+    jvmFreeMemory?: number;
+    cpuUsage?: number;
+    systemLoad?: number;
+    cpuCores?: number;
+    threadCount?: number;
+    gcCount?: number;
+    gcTime?: number;
+    diskTotal?: number;
+    diskFree?: number;
     registerTime?: string;
   };
 
@@ -71,5 +138,32 @@ declare namespace API {
 
   type ServerSystemReqVO = {
     serverId?: string;
+  };
+
+  type SystemInfoVO = {
+    id?: string;
+    serverId?: string;
+    jvmMaxMemory?: number;
+    jvmTotalMemory?: number;
+    jvmUsableMemory?: number;
+    jvmFreeMemory?: number;
+    cpuUsage?: number;
+    systemLoad?: number;
+    cpuCores?: number;
+    threadCount?: number;
+    gcCount?: number;
+    gcTime?: number;
+    diskTotal?: number;
+    diskFree?: number;
+    registerTime?: string;
+  };
+
+  type UserVO = {
+    page?: number;
+    pageSize?: number;
+    id?: number;
+    username?: string;
+    password?: string;
+    role?: string;
   };
 }

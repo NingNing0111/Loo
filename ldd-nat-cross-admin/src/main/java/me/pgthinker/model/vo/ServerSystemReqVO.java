@@ -2,6 +2,8 @@ package me.pgthinker.model.vo;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @Project: me.pgthinker.model.vo
  * @Author: NingNing0111
@@ -10,6 +12,6 @@ import lombok.Data;
  * @Description:
  */
 @Data
-public class ServerSystemReqVO {
+public class ServerSystemReqVO implements Serializable {
     private String serverId;
 }

@@ -8,6 +8,6 @@ server:
 admin:
   enabled: true # 是否接入Admin端
   hostname: localhost # Admin端信息
-  port: 7990
+  port: 7989
 
 

@@ -9,7 +9,7 @@ import me.pgthinker.common.ErrorCode;
 import me.pgthinker.config.AdminConfig;
 import me.pgthinker.exception.BusinessException;
 import me.pgthinker.mapper.UserMapper;
-import me.pgthinker.model.entity.User;
+import me.pgthinker.model.entity.UserDO;
 import me.pgthinker.model.enums.RoleEnum;
 import me.pgthinker.model.vo.AuthVO;
 import me.pgthinker.model.vo.LoginUserVO;
@@ -21,7 +21,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
 
 /**
  * @Project: me.pgthinker.service.impl
@@ -42,61 +41,61 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginUserVO auth(AuthVO authVO) {
-        User user = checkAuthVO(authVO);
-        String token = jwtUtil.generateToken(user);
+        UserDO userDO = checkAuthVO(authVO);
+        String token = jwtUtil.generateToken(userDO);
         LoginUserVO loginUserVO = new LoginUserVO();
-        BeanUtils.copyProperties(user, loginUserVO);
+        BeanUtils.copyProperties(userDO, loginUserVO);
         loginUserVO.setToken(token);
         return loginUserVO;
     }
 
     @Override
     public LoginUserVO userInfo() {
-        User loginUser = SecurityFrameworkUtils.getLoginUser();
+        UserDO loginUserDO = SecurityFrameworkUtils.getLoginUser();
         LoginUserVO loginUserVO = new LoginUserVO();
-        BeanUtils.copyProperties(loginUser, loginUserVO);
+        BeanUtils.copyProperties(loginUserDO, loginUserVO);
         return loginUserVO;
     }
 
-    private User checkAuthVO(AuthVO authVO) {
+    private UserDO checkAuthVO(AuthVO authVO) {
         String password = authVO.getPassword();
         String username = authVO.getUsername();
         if(StringUtils.isEmpty(password) || StringUtils.isEmpty(username)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        LambdaQueryWrapper<User> userQW = new LambdaQueryWrapper<>();
-        userQW.eq(User::getUsername, username);
-        User storeUser = userMapper.selectOne(userQW);
-        if(ObjectUtil.isEmpty(storeUser)) {
+        LambdaQueryWrapper<UserDO> userQW = new LambdaQueryWrapper<>();
+        userQW.eq(UserDO::getUsername, username);
+        UserDO storeUserDO = userMapper.selectOne(userQW);
+        if(ObjectUtil.isEmpty(storeUserDO)) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUNT);
         }
-        if(!passwordEncoder.matches(password,storeUser.getPassword())){
+        if(!passwordEncoder.matches(password, storeUserDO.getPassword())){
             throw new BusinessException(ErrorCode.USER_ACCOUNT_ERROR);
         }
-        return storeUser;
+        return storeUserDO;
     }
 
     @Transactional(rollbackFor = Exception.class)
     @PostConstruct
     public void initRootAccount(){
-        LambdaQueryWrapper<User> userQW = new LambdaQueryWrapper<>();
-        userQW.eq(User::getUsername, adminConfig.getUsername());
+        LambdaQueryWrapper<UserDO> userQW = new LambdaQueryWrapper<>();
+        userQW.eq(UserDO::getUsername, adminConfig.getUsername());
 
         if(adminConfig.getNewAccount()) {
             userMapper.delete(userQW);
-            User user = new User();
-            user.setRole(RoleEnum.ADMIN.getName());
-            user.setUsername(adminConfig.getUsername());
-            user.setPassword(passwordEncoder.encode(adminConfig.getPassword()));
-            userMapper.insert(user);
+            UserDO userDO = new UserDO();
+            userDO.setRole(RoleEnum.ADMIN.getName());
+            userDO.setUsername(adminConfig.getUsername());
+            userDO.setPassword(passwordEncoder.encode(adminConfig.getPassword()));
+            userMapper.insert(userDO);
         }else{
             boolean exists = userMapper.exists(userQW);
             if(!exists){
-                User user = new User();
-                user.setRole(RoleEnum.ADMIN.getName());
-                user.setUsername(adminConfig.getUsername());
-                user.setPassword(passwordEncoder.encode(adminConfig.getPassword()));
-                userMapper.insert(user);
+                UserDO userDO = new UserDO();
+                userDO.setRole(RoleEnum.ADMIN.getName());
+                userDO.setUsername(adminConfig.getUsername());
+                userDO.setPassword(passwordEncoder.encode(adminConfig.getPassword()));
+                userMapper.insert(userDO);
             }
         }
 

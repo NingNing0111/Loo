@@ -1,7 +1,9 @@
 package me.pgthinker.service;
 
 import me.pgthinker.model.entity.ServerSystemInfoDO;
+import me.pgthinker.model.vo.ServerInfoVO;
 import me.pgthinker.model.vo.ServerSystemReqVO;
+import me.pgthinker.model.vo.SystemInfoVO;
 
 import java.util.List;
 import java.util.Map;
@@ -15,9 +17,10 @@ import java.util.Map;
  */
 public interface ServerSystemInfoService {
 
-    void addSystemInfo(String serverId, Map<String, String> systemInfo);
-
 
     List<ServerSystemInfoDO> list(ServerSystemReqVO reqVO);
+
+    List<SystemInfoVO> analysisData(String serverName);
+
 
 }

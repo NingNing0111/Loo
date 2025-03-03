@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -18,18 +19,38 @@ import java.time.LocalDateTime;
  */
 @TableName("server_system_info")
 @Data
-public class ServerSystemInfoDO implements Serializable {
+@EqualsAndHashCode(callSuper = false)
+
+public class ServerSystemInfoDO extends BaseDO implements Serializable {
 
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     private String serverId;
-    private Long maxMemory;
-    private Long totalMemory;
-    private Long usableMemory;
-    private Long freeMemory;
-    private LocalDateTime registerTime;
 
+    // JVM内存信息
+    private Long jvmMaxMemory;
+    private Long jvmTotalMemory;
+    private Long jvmUsableMemory;
+    private Long jvmFreeMemory;
+
+    // CPU 相关
+    private Double cpuUsage; // CPU 使用率 (%)
+    private Double systemLoad; // 系统负载
+    private Integer cpuCores;
+
+    // 线程信息
+    private Integer threadCount; // 线程数
+
+    // GC 信息
+    private Long gcCount; // GC 总次数
+    private Long gcTime; // GC 总耗时 (ms)
+
+    // 磁盘信息
+    private Long diskTotal; // 磁盘总容量 (MB)
+    private Long diskFree; // 磁盘剩余容量 (MB)
+
+    private LocalDateTime registerTime;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

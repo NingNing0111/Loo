@@ -18,10 +18,9 @@ import java.util.Map;
  */
 public interface ServerInfoService {
 
-    void addServerInfo(ChannelHandlerContext ctx, Map<String, String> serverInfo);
 
     List<ServerInfoVO> list();
 
-    Page<ServerInfoVO> historyList(ServerInfoVO serverInfoVO, Integer page, Integer pageSize);
+    Page<ServerInfoVO> historyList(ServerInfoVO serverInfoVO);
 
 }

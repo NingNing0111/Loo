@@ -132,6 +132,7 @@ async fn local_proxy_handler(
             // 发送disconnect
             let disconnect_msg = build_disconnect_message(license_key.clone(), visitor_id.clone());
             s_tx.send(disconnect_msg).await?;
+
             return Err(e.into());
         }
     };

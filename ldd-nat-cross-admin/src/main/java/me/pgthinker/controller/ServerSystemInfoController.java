@@ -5,10 +5,12 @@ import me.pgthinker.common.BaseResponse;
 import me.pgthinker.common.ResultUtils;
 import me.pgthinker.model.entity.ServerSystemInfoDO;
 import me.pgthinker.model.vo.ServerSystemReqVO;
+import me.pgthinker.model.vo.SystemInfoVO;
 import me.pgthinker.service.ServerSystemInfoService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -32,5 +34,11 @@ public class ServerSystemInfoController {
     public BaseResponse<List<ServerSystemInfoDO>> serverSystemInfoList(ServerSystemReqVO reqVO) {
         List<ServerSystemInfoDO> resp = serverSystemInfoService.list(reqVO);
         return ResultUtils.success(resp);
+    }
+
+    @GetMapping("/analysis")
+    @PreAuthorize("hasAnyAuthority('admin')")
+    public BaseResponse<List<SystemInfoVO>> analysis(@RequestParam("serverName") String serverName) {
+        return ResultUtils.success(serverSystemInfoService.analysisData(serverName));
     }
 }

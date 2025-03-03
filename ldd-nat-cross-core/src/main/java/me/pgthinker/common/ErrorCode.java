@@ -20,6 +20,8 @@ public enum ErrorCode {
     DELETE_ERROR(50004,"删除失败"),
     USER_NOT_FOUNT(5011,"用户不存在"),
     USER_ACCOUNT_ERROR(5012,"用户名或密码错误"),
+    USER_EXISTS(5013,"用户已存在"),
+
     REFRESH_TOKEN(40300,"令牌异常");
 
 

@@ -8,7 +8,7 @@ export async function historyList(
   params: API.historyListParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponse>(`/api/server/historyList`, {
+  return request<API.BaseResponsePageServerInfoVO>(`/api/server/historyList`, {
     method: 'GET',
     params: {
       ...params,

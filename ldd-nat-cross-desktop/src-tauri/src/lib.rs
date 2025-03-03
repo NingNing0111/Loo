@@ -1,5 +1,4 @@
 use global::AppState;
-use init::log::{init_log, LogConfig};
 use once_cell::sync::Lazy;
 use sys::init_app_dir;
 
@@ -10,7 +9,6 @@ pub mod core;
 pub mod global;
 pub mod handler;
 pub mod helper;
-pub mod init;
 pub mod model;
 pub mod store;
 pub mod sys;
@@ -22,17 +20,23 @@ pub static APP_STATE: Lazy<AppState> = Lazy::new(|| AppState::new("loo".to_strin
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .setup(|_app| {
+        .setup(|app| {
             let app_dir = init_app_dir();
-            init_log(LogConfig::new(app_dir)).unwrap();
-            // if cfg!(debug_assertions) {
-            //     app.handle().plugin(
-            //         tauri_plugin_log::Builder::default()
-            //             .level(log::LevelFilter::Info)
-            //             .build(),
-            //     )?;
-            // }
-
+            let mut log_dir = app_dir.clone();
+            log_dir.push("logs");
+            if cfg!(debug_assertions) {
+                app.handle().plugin(
+                    tauri_plugin_log::Builder::default()
+                        .level(log::LevelFilter::Info)
+                        .target(tauri_plugin_log::Target::new(
+                            tauri_plugin_log::TargetKind::Folder {
+                                path: std::path::PathBuf::from(log_dir),
+                                file_name: None,
+                            },
+                        ))
+                        .build(),
+                )?;
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

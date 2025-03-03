@@ -2,7 +2,7 @@ import { defineConfig } from '@umijs/max';
 
 export default defineConfig({
   antd: {
-    dark: true,
+    // dark: true,
   },
   access: {},
   model: {},
@@ -11,11 +11,17 @@ export default defineConfig({
     dataField: 'data',
   },
   layout: {
-    title: 'ldd-nat-cross-admin',
+    title: 'Loo-admin',
     locale: false,
     contentWidth: 'Fixed',
   },
   routes: [
+    {
+      path: '/login',
+      component: './Login',
+      name: '登录',
+      hideInMenu: true,
+    },
     {
       path: '/',
       redirect: '/home',
@@ -25,36 +31,31 @@ export default defineConfig({
       path: '/home',
       component: './Home',
       access: 'canAccess',
-      // wrappers: ['@/wrappers/auth'],
-      routes: [
-        {
-          path: '/home/:serverName',
-          component: './Server',
-          hideInMenu: true,
-          // 不展示菜单顶栏
-          menuHeaderRender: false,
-          // 不展示顶栏
-          headerRender: false,
-          // 不展示页脚
-          footerRender: false,
-          // 不展示菜单
-          menuRender: false,
-        },
-      ],
     },
     {
-      path: '/login',
-      component: './Login',
-      name: '登录',
+      name: '服务详情',
+      path: '/server/:serverName',
+      component: './Server',
       hideInMenu: true,
-      // 不展示菜单顶栏
-      menuHeaderRender: false,
-      // 不展示顶栏
-      headerRender: false,
-      // 不展示页脚
-      footerRender: false,
-      // 不展示菜单
-      menuRender: false,
+      access: 'canAccess',
+    },
+    {
+      name: '用户管理',
+      path: '/user',
+      component: './User',
+      access: 'canAccess',
+    },
+    {
+      name: '服务监控',
+      path: '/serverAnalysis',
+      component: './Analysis',
+      access: 'canAccess',
+    },
+    {
+      name: '系统设置',
+      path: '/setting',
+      component: './Config',
+      access: 'canAccess',
     },
   ],
   npmClient: 'pnpm',

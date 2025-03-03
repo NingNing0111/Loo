@@ -1,6 +1,6 @@
 package me.pgthinker.util;
 
-import me.pgthinker.model.entity.User;
+import me.pgthinker.model.entity.UserDO;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,11 +23,11 @@ public class SecurityFrameworkUtils {
         return context.getAuthentication();
     }
 
-    public static User getLoginUser() {
+    public static UserDO getLoginUser() {
         Authentication authentication = getAuthentication();
         if (authentication == null) {
             return null;
         }
-        return authentication.getPrincipal() instanceof User ? (User) authentication.getPrincipal() : null;
+        return authentication.getPrincipal() instanceof UserDO ? (UserDO) authentication.getPrincipal() : null;
     }
 }

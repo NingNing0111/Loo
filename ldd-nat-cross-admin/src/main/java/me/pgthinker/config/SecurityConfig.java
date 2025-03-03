@@ -37,6 +37,7 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/doc.html",
             "/webjars/**",
+            "/admin/**"
     };
 
     private static final String[] USER_LIST_URL = {

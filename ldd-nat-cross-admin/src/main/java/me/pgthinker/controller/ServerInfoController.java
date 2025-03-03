@@ -1,5 +1,6 @@
 package me.pgthinker.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import me.pgthinker.common.BaseResponse;
 import me.pgthinker.common.ResultUtils;
@@ -32,7 +33,7 @@ public class ServerInfoController {
 
     @GetMapping("/historyList")
     @PreAuthorize("hasAnyAuthority('admin')")
-    public BaseResponse historyList(ServerInfoVO serverInfoVO, @RequestParam Integer page, @RequestParam Integer pageSize){
-        return ResultUtils.success(serverInfoService.historyList(serverInfoVO, page, pageSize));
+    public BaseResponse<Page<ServerInfoVO>> historyList(ServerInfoVO serverInfoVO){
+        return ResultUtils.success(serverInfoService.historyList(serverInfoVO));
     }
 }

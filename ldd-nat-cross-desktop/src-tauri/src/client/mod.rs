@@ -78,6 +78,7 @@ impl ClientApp {
             loop {
                 tokio::select! {
                     Some(msg) = s_rx.recv() => {
+                        log::info!("接收到消息:{:?}", msg);
                         let mut w_msg = BytesMut::with_capacity(FRAME_SIZE);
                         msg.encode_length_delimited(&mut w_msg).unwrap();
                         s_writer.write_all(&w_msg).await.unwrap();

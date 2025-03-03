@@ -1,6 +1,10 @@
 package me.pgthinker.model.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
  * @Project: me.pgthinker.model.vo
@@ -10,7 +14,9 @@ import lombok.Data;
  * @Description:
  */
 @Data
-public class AuthVO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class AuthVO implements Serializable {
     private String username;
     private String password;
 }

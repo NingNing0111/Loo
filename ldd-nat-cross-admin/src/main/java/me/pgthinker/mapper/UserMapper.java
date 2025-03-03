@@ -1,7 +1,7 @@
 package me.pgthinker.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import me.pgthinker.model.entity.User;
+import me.pgthinker.model.entity.UserDO;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -12,5 +12,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @Description:
  */
 @Mapper
-public interface UserMapper extends BaseMapper<User> {
+public interface UserMapper extends BaseMapper<UserDO> {
 }

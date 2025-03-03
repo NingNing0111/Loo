@@ -20,7 +20,6 @@ const LoginPage: React.FC = () => {
 
   const initUserInfo = async () => {
     localStorage.removeItem('jwt');
-    console.log('清理数据缓存');
   };
 
   useEffect(() => {

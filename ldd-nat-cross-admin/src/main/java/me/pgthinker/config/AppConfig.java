@@ -6,14 +6,13 @@ import lombok.RequiredArgsConstructor;
 import me.pgthinker.common.ErrorCode;
 import me.pgthinker.exception.BusinessException;
 import me.pgthinker.mapper.UserMapper;
-import me.pgthinker.model.entity.User;
+import me.pgthinker.model.entity.UserDO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,9 +51,9 @@ public class AppConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
-            LambdaQueryWrapper<User> qw = new LambdaQueryWrapper<>();
-            qw.eq(User::getUsername, username);
-            Optional<User> userByEmail = Optional.ofNullable(userMapper.selectOne(qw));
+            LambdaQueryWrapper<UserDO> qw = new LambdaQueryWrapper<>();
+            qw.eq(UserDO::getUsername, username);
+            Optional<UserDO> userByEmail = Optional.ofNullable(userMapper.selectOne(qw));
 
             if (userByEmail.isPresent()) {
                 return userByEmail.get();

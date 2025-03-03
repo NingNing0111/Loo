@@ -5,6 +5,7 @@ import {
   ProCard,
   ProDescriptions,
 } from '@ant-design/pro-components';
+import { useNavigate } from '@umijs/max';
 import { Button } from 'antd';
 import { useEffect, useState } from 'react';
 import './index.less';
@@ -12,6 +13,7 @@ import './index.less';
 const HomePage: React.FC = () => {
   const [servers, setServers] = useState<API.ServerInfoVO[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   const loadServers = async () => {
     setLoading(true);
@@ -30,8 +32,8 @@ const HomePage: React.FC = () => {
     loadServers();
   }, []);
 
-  const serverDetail = () => {
-    console.log('detail...');
+  const serverDetail = (server: API.ServerInfoVO) => {
+    navigate(`/server/${server.serverName}`);
   };
 
   return (
@@ -57,7 +59,10 @@ const HomePage: React.FC = () => {
           key={item.id}
           bordered
           extra={
-            <Button icon={<ProjectOutlined />} onClick={serverDetail}>
+            <Button
+              icon={<ProjectOutlined />}
+              onClick={() => serverDetail(item)}
+            >
               查看详情
             </Button>
           }
@@ -89,12 +94,6 @@ const HomePage: React.FC = () => {
               }}
             >
               {item.isLive}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item label="接入IP" copyable>
-              {item.ip}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item label="端口">
-              {item.port}
             </ProDescriptions.Item>
             <ProDescriptions.Item label="接入主机" copyable>
               {item.hostname}
