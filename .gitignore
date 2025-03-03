@@ -52,4 +52,5 @@ build/
 /dist
 /.mfsu
 .swc
+application-prod.*
 

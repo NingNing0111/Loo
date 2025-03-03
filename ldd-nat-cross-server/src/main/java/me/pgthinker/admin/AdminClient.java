@@ -1,21 +1,14 @@
 package me.pgthinker.admin;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSONUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.common.BaseResponse;
-import me.pgthinker.common.ResultUtils;
 import me.pgthinker.config.AdminConfig;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.rmi.registry.Registry;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -39,7 +32,7 @@ public class AdminClient {
         if (!adminConfig.getEnabled()) {
             return;
         }
-        String registerUrl = String.format("http://%s:%s/api/admin/register", adminConfig.getHostname(), adminConfig.getPort());
+        String registerUrl = String.format("%s/admin/register", adminConfig.getBaseUrl());
         String serverHostName = "";
         if (StringUtils.isNotEmpty(adminConfig.getServerHostname())) {
             serverHostName = adminConfig.getServerHostname();
@@ -48,7 +41,7 @@ public class AdminClient {
         }
         RegisterServerVO registerServerVO = new RegisterServerVO(adminConfig.getServerName(), serverHostName);
         try {
-            log.info("request body:{}", registerServerVO);
+            log.info("register Url:{} ,request body:{}", registerUrl, registerServerVO);
             BaseResponse baseResponse = restTemplate.postForObject(registerUrl, registerServerVO, BaseResponse.class);
             log.info("{}",baseResponse);
             if (baseResponse != null && baseResponse.getCode() == 0 && baseResponse.getData() != null) {
@@ -64,23 +57,22 @@ public class AdminClient {
 
     private void sendHeartbeat(String serverId) {
         Timer timer = new Timer();
-        String heartbeatUrl = String.format("http://%s:%s/api/admin/heartbeat/%s", adminConfig.getHostname(), adminConfig.getPort(), serverId);
+        String heartbeatUrl = String.format("%s/admin/heartbeat/%s", adminConfig.getBaseUrl(), serverId);
 
         timer.schedule(new TimerTask() {
 
             @Override
             public void run() {
                 HeartbeatDataVO heartbeatDataVO = new HeartbeatDataVO();
-                log.info("心跳：{}", heartbeatDataVO);
+                log.info("heartbeat data:{}", heartbeatDataVO);
                 try {
-
                     BaseResponse baseResponse = restTemplate.postForObject(heartbeatUrl, heartbeatDataVO, BaseResponse.class);
-                    log.info("心跳响应 {}", baseResponse);
+                    log.debug("心跳响应 {}", baseResponse);
                 }catch (Exception e){
-                    log.info(e.getMessage());
+                    log.error(e.getMessage());
                 }
             }
-        },0, 5000);
+        },0, 10000);
     }
 
 

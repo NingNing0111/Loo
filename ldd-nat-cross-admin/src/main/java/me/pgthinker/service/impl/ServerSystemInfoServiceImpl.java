@@ -8,10 +8,12 @@ import me.pgthinker.mapper.ServerInfoMapper;
 import me.pgthinker.mapper.ServerSystemInfoMapper;
 import me.pgthinker.model.entity.ServerInfoDO;
 import me.pgthinker.model.entity.ServerSystemInfoDO;
+import me.pgthinker.model.vo.AnalysisDataVO;
 import me.pgthinker.model.vo.ServerInfoVO;
 import me.pgthinker.model.vo.ServerSystemReqVO;
 import me.pgthinker.model.vo.SystemInfoVO;
 import me.pgthinker.service.ServerSystemInfoService;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -45,24 +48,22 @@ public class ServerSystemInfoServiceImpl implements ServerSystemInfoService {
     }
 
     @Override
-    public List<SystemInfoVO> analysisData(String serverName) {
+    public List<AnalysisDataVO> analysisData(String serverName, String timeType) {
         LambdaQueryWrapper<ServerInfoDO> serverInfoQW = new LambdaQueryWrapper<>();
         serverInfoQW.eq(ServerInfoDO::getServerName, serverName);
         List<ServerInfoDO> serverInfoDOS = serverInfoMapper.selectList(serverInfoQW);
         List<String> serverIds = serverInfoDOS.stream().map(ServerInfoDO::getId).toList();
-        if (!serverIds.isEmpty()) {
-            LambdaQueryWrapper<ServerSystemInfoDO> systemInfoQW = new LambdaQueryWrapper<>();
-            systemInfoQW.in(ServerSystemInfoDO::getServerId, serverIds);
-            systemInfoQW.orderByDesc(ServerSystemInfoDO::getRegisterTime);
-            // 限定100条数据
-            systemInfoQW.last("LIMIT 500"); // 限制最多返回 100 条数据
-            List<ServerSystemInfoDO> res = serverSystemInfoMapper.selectList(systemInfoQW);
-            // 反转
-            Collections.reverse(res);
-            return transform(res);
+        if(serverIds.isEmpty()) {
+            return List.of();
         }
-
+        if(Objects.equals("day", timeType)) {
+            return serverSystemInfoMapper.inDaySystemInfoList(serverName);
+        }
+        if(Objects.equals("month", timeType)) {
+            return serverSystemInfoMapper.onMonthSystemInfoList(serverName);
+        }
         return List.of();
+
     }
 
     private List<SystemInfoVO> transform(List<ServerSystemInfoDO> systemInfoDOS) {

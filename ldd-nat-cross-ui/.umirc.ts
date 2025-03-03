@@ -63,16 +63,14 @@ export default defineConfig({
     '/api': {
       target: 'http://localhost:7989',
       changeOrigin: true,
-      // pathRewrite: {
-      //   '^/api': '',
-      // },
+      secure: false,
     },
   },
   presets: ['umi-presets-pro'],
   openAPI: [
     {
       requestLibPath: "import { request } from 'umi'",
-      schemaPath: 'http://localhost:7989/api/v3/api-docs/default', // openapi 接口地址
+      schemaPath: 'http://loo.mnzdna.xyz/api/v3/api-docs/default', // openapi 接口地址
       mock: false,
       apiPrefix() {
         return "'/api'";

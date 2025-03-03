@@ -20,8 +20,7 @@ import java.net.UnknownHostException;
 @Data
 public class AdminConfig {
     private Boolean enabled;
-    private String hostname;
-    private Integer port;
+    private String baseUrl;
     private String serverName = SystemUtil.getUserInfo().getName();
     private String serverHostname;
 

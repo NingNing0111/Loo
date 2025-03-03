@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.pgthinker.common.BaseResponse;
 import me.pgthinker.common.ResultUtils;
 import me.pgthinker.model.entity.ServerSystemInfoDO;
+import me.pgthinker.model.vo.AnalysisDataVO;
 import me.pgthinker.model.vo.ServerSystemReqVO;
 import me.pgthinker.model.vo.SystemInfoVO;
 import me.pgthinker.service.ServerSystemInfoService;
@@ -38,7 +39,7 @@ public class ServerSystemInfoController {
 
     @GetMapping("/analysis")
     @PreAuthorize("hasAnyAuthority('admin')")
-    public BaseResponse<List<SystemInfoVO>> analysis(@RequestParam("serverName") String serverName) {
-        return ResultUtils.success(serverSystemInfoService.analysisData(serverName));
+    public BaseResponse<List<AnalysisDataVO>> analysis(@RequestParam("serverName") String serverName, @RequestParam("timeType") String timeType) {
+        return ResultUtils.success(serverSystemInfoService.analysisData(serverName, timeType));
     }
 }

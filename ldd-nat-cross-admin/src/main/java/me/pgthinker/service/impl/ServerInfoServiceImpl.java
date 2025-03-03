@@ -10,6 +10,7 @@ import me.pgthinker.service.ServerInfoService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ public class ServerInfoServiceImpl implements ServerInfoService {
     public List<ServerInfoVO> list() {
         List<ServerInfoVO> res = new ArrayList<>();
         LambdaQueryWrapper<ServerInfoDO> qw = new LambdaQueryWrapper<>();
+        qw.orderByDesc(ServerInfoDO::getIsLive);
         qw.orderByDesc(ServerInfoDO::getRegisterTime);
         List<ServerInfoDO> serverInfoDOS = serverInfoMapper.selectList(qw);
         Map<String, List<ServerInfoDO>> groupList = serverInfoDOS.stream().collect(Collectors.groupingBy(ServerInfoDO::getServerName));
@@ -41,6 +43,7 @@ public class ServerInfoServiceImpl implements ServerInfoService {
             BeanUtils.copyProperties(serverInfoDO, serverInfoVO);
             res.add(serverInfoVO);
         }
+
         return res;
     }
 

@@ -22,7 +22,7 @@ public interface AdminService {
 
     Map<String, LocalDateTime> lastSystemInfo();
 
-    void markServerAsDead(String serverId);
+    void markServerAsDead(String serverName);
 
     void cleanServer();
 

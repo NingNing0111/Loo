@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="me.pgthinker.mapper.ServerSystemInfoMapper">
+
+    <resultMap id="BaseResultMap" type="me.pgthinker.model.entity.ServerSystemInfoDO">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="serverId" column="server_id" jdbcType="VARCHAR"/>
+            <result property="jvmMaxMemory" column="jvm_max_memory" jdbcType="BIGINT"/>
+            <result property="jvmTotalMemory" column="jvm_total_memory" jdbcType="BIGINT"/>
+            <result property="jvmUsableMemory" column="jvm_usable_memory" jdbcType="BIGINT"/>
+            <result property="jvmFreeMemory" column="jvm_free_memory" jdbcType="BIGINT"/>
+            <result property="cpuUsage" column="cpu_usage" jdbcType="DOUBLE"/>
+            <result property="systemLoad" column="system_load" jdbcType="DOUBLE"/>
+            <result property="cpuCores" column="cpu_cores" jdbcType="DOUBLE"/>
+            <result property="threadCount" column="thread_count" jdbcType="INTEGER"/>
+            <result property="gcCount" column="gc_count" jdbcType="INTEGER"/>
+            <result property="gcTime" column="gc_time" jdbcType="INTEGER"/>
+            <result property="diskTotal" column="disk_total" jdbcType="BIGINT"/>
+            <result property="diskFree" column="disk_free" jdbcType="BIGINT"/>
+            <result property="registerTime" column="register_time" jdbcType="TIMESTAMP"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="deleted" column="deleted" jdbcType="BIT"/>
+    </resultMap>
+
+    <resultMap id="AnalysisResultMap" type="me.pgthinker.model.vo.AnalysisDataVO">
+        <result property="jvmMaxMemory" column="jvm_max_memory" jdbcType="BIGINT"/>
+        <result property="jvmTotalMemory" column="jvm_total_memory" jdbcType="BIGINT"/>
+        <result property="jvmUsableMemory" column="jvm_usable_memory" jdbcType="BIGINT"/>
+        <result property="jvmFreeMemory" column="jvm_free_memory" jdbcType="BIGINT"/>
+        <result property="cpuUsage" column="cpu_usage" jdbcType="DOUBLE"/>
+        <result property="systemLoad" column="system_load" jdbcType="DOUBLE"/>
+        <result property="cpuCores" column="cpu_cores" jdbcType="DOUBLE"/>
+        <result property="threadCount" column="thread_count" jdbcType="INTEGER"/>
+        <result property="gcCount" column="gc_count" jdbcType="INTEGER"/>
+        <result property="gcTime" column="gc_time" jdbcType="INTEGER"/>
+        <result property="diskTotal" column="disk_total" jdbcType="BIGINT"/>
+        <result property="diskFree" column="disk_free" jdbcType="BIGINT"/>
+        <result property="registerTime" column="register_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,server_id,jvm_max_memory,
+        jvm_total_memory,jvm_usable_memory,jvm_free_memory,
+        cpu_usage,system_load,cpu_cores,
+        thread_count,gc_count,gc_time,
+        disk_total,disk_free,register_time,
+        create_time,update_time,deleted
+    </sql>
+
+    <select id="inDaySystemInfoList" resultMap="AnalysisResultMap" parameterType="map">
+        WITH RECURSIVE hour_series AS (
+        -- 生成最近24小时的时间序列
+        SELECT DATE_FORMAT(NOW() - INTERVAL 23 HOUR, '%Y-%m-%d %H:00:00') AS report_hour
+        UNION ALL
+        SELECT DATE_FORMAT(report_hour + INTERVAL 1 HOUR, '%Y-%m-%d %H:00:00')
+        FROM hour_series
+        WHERE report_hour &lt; DATE_FORMAT(NOW(), '%Y-%m-%d %H:00:00')
+        )
+        SELECT
+        hs.report_hour                        AS register_time,
+        COALESCE(AVG(s.jvm_max_memory), 0)    AS jvm_max_memory,
+        COALESCE(AVG(s.jvm_total_memory), 0)  AS jvm_total_memory,
+        COALESCE(AVG(s.jvm_usable_memory), 0) AS jvm_usable_memory,
+        COALESCE(AVG(s.jvm_free_memory), 0)   AS jvm_free_memory,
+        COALESCE(AVG(s.cpu_usage), 0)         AS cpu_usage,
+        COALESCE(AVG(s.system_load), 0)       AS system_load,
+        COALESCE(AVG(s.cpu_cores), 0)         AS cpu_cores,
+        COALESCE(AVG(s.thread_count), 0)      AS thread_count,
+        COALESCE(AVG(s.gc_count), 0)          AS gc_count,
+        COALESCE(AVG(s.gc_time), 0)           AS gc_time,
+        COALESCE(AVG(s.disk_total), 0)        AS disk_total,
+        COALESCE(AVG(s.disk_free), 0)         AS disk_free
+        FROM hour_series hs
+        LEFT JOIN server_system_info s
+        ON DATE_FORMAT(s.register_time, '%Y-%m-%d %H:00:00') = hs.report_hour
+        AND s.deleted = b'0'
+        AND s.server_id IN (
+        SELECT id FROM server_info WHERE server_name = #{serverName}
+        )
+        GROUP BY hs.report_hour
+        ORDER BY hs.report_hour
+    </select>
+
+    <select id="onMonthSystemInfoList" resultMap="AnalysisResultMap" parameterType="map">
+        WITH RECURSIVE date_series AS (
+        -- 生成最近30天的日期序列
+        SELECT CURDATE() - INTERVAL 29 DAY AS report_date
+        UNION ALL
+        SELECT report_date + INTERVAL 1 DAY
+        FROM date_series
+        WHERE report_date &lt; CURDATE())
+        SELECT ds.report_date                        AS register_time,
+        COALESCE(AVG(s.jvm_max_memory), 0)    AS jvm_max_memory,
+        COALESCE(AVG(s.jvm_total_memory), 0)  AS jvm_total_memory,
+        COALESCE(AVG(s.jvm_usable_memory), 0) AS jvm_usable_memory,
+        COALESCE(AVG(s.jvm_free_memory), 0)   AS jvm_free_memory,
+        COALESCE(AVG(s.cpu_usage), 0)         AS cpu_usage,
+        COALESCE(AVG(s.system_load), 0)       AS system_load,
+        COALESCE(AVG(s.cpu_cores), 0)         AS cpu_cores,
+        COALESCE(AVG(s.thread_count), 0)      AS thread_count,
+        COALESCE(AVG(s.gc_count), 0)          AS gc_count,
+        COALESCE(AVG(s.gc_time), 0)           AS gc_time,
+        COALESCE(AVG(s.disk_total), 0)        AS disk_total,
+        COALESCE(AVG(s.disk_free), 0)         AS disk_free
+        FROM date_series ds
+        LEFT JOIN server_system_info s
+        ON DATE(s.register_time) = ds.report_date
+        AND s.deleted = b'0'
+        AND s.server_id IN (
+            SELECT id FROM server_info WHERE server_name = #{serverName}
+        )
+        GROUP BY ds.report_date
+        ORDER BY ds.report_date
+    </select>
+</mapper>

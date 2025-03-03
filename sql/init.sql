@@ -2,6 +2,8 @@ CREATE DATABASE IF NOT EXISTS `LOO_DB`
 CHARACTER SET utf8;
 
 USE `LOO_DB`;
+SET GLOBAL time_zone = '+8:00';
+SET time_zone = '+8:00';
 
 DROP TABLE IF EXISTS `server_info`;
 CREATE TABLE `server_info`(

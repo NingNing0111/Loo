@@ -8,7 +8,7 @@ export async function analysis(
   params: API.analysisParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseListSystemInfoVO>(
+  return request<API.BaseResponseListAnalysisDataVO>(
     `/api/serverSystem/analysis`,
     {
       method: 'GET',

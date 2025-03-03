@@ -1,11 +1,34 @@
 declare namespace API {
+  type AnalysisDataVO = {
+    jvmMaxMemory?: number;
+    jvmTotalMemory?: number;
+    jvmUsableMemory?: number;
+    jvmFreeMemory?: number;
+    cpuUsage?: number;
+    systemLoad?: number;
+    cpuCores?: number;
+    threadCount?: number;
+    gcCount?: number;
+    gcTime?: number;
+    diskTotal?: number;
+    diskFree?: number;
+    registerTime?: string;
+  };
+
   type analysisParams = {
     serverName: string;
+    timeType: string;
   };
 
   type AuthVO = {
     username?: string;
     password?: string;
+  };
+
+  type BaseResponseListAnalysisDataVO = {
+    code?: number;
+    data?: AnalysisDataVO[];
+    message?: string;
   };
 
   type BaseResponseListServerInfoVO = {
@@ -17,12 +40,6 @@ declare namespace API {
   type BaseResponseListServerSystemInfoDO = {
     code?: number;
     data?: ServerSystemInfoDO[];
-    message?: string;
-  };
-
-  type BaseResponseListSystemInfoVO = {
-    code?: number;
-    data?: SystemInfoVO[];
     message?: string;
   };
 
@@ -138,24 +155,6 @@ declare namespace API {
 
   type ServerSystemReqVO = {
     serverId?: string;
-  };
-
-  type SystemInfoVO = {
-    id?: string;
-    serverId?: string;
-    jvmMaxMemory?: number;
-    jvmTotalMemory?: number;
-    jvmUsableMemory?: number;
-    jvmFreeMemory?: number;
-    cpuUsage?: number;
-    systemLoad?: number;
-    cpuCores?: number;
-    threadCount?: number;
-    gcCount?: number;
-    gcTime?: number;
-    diskTotal?: number;
-    diskFree?: number;
-    registerTime?: string;
   };
 
   type UserVO = {

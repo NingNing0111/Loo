@@ -1,6 +1,7 @@
 package me.pgthinker.service;
 
 import me.pgthinker.model.entity.ServerSystemInfoDO;
+import me.pgthinker.model.vo.AnalysisDataVO;
 import me.pgthinker.model.vo.ServerInfoVO;
 import me.pgthinker.model.vo.ServerSystemReqVO;
 import me.pgthinker.model.vo.SystemInfoVO;
@@ -20,7 +21,7 @@ public interface ServerSystemInfoService {
 
     List<ServerSystemInfoDO> list(ServerSystemReqVO reqVO);
 
-    List<SystemInfoVO> analysisData(String serverName);
+    List<AnalysisDataVO> analysisData(String serverName, String timeType);
 
 
 }

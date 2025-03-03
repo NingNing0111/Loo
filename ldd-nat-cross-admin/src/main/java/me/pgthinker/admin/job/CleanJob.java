@@ -6,10 +6,7 @@ import me.pgthinker.admin.service.AdminService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Project: me.pgthinker.admin.job
@@ -28,8 +25,9 @@ public class CleanJob {
      * 查询心跳数据 拿到最新且去重的 serverId-registerTime
      * 根据判断now - registerTime > TIMEOUT ，若true 则说明超时了，此时将serverId的isLive设置为false
      */
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 10000)
     public void cleanUp() {
+        log.info("开始清理服务...");
         adminService.cleanServer();
         List<String> strings = adminService.liveServer();
         log.info("Live server: {}", strings);

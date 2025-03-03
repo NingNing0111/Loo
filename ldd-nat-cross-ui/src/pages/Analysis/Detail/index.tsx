@@ -1,14 +1,15 @@
 import { analysis } from '@/services/serverSystemInfoController';
 import { ProCard } from '@ant-design/pro-components';
-import { Button } from 'antd';
+import { Button, Select } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import { useEffect, useState } from 'react';
 
+type TimeType = 'day' | 'month';
 interface Props {
   serverName: string;
 }
 
-const getLineChartOption = (analysisList: API.SystemInfoVO[]) => {
+const getLineChartOption = (analysisList: API.AnalysisDataVO[]) => {
   const option = {
     title: {
       text: ``,
@@ -29,8 +30,8 @@ const getLineChartOption = (analysisList: API.SystemInfoVO[]) => {
       data: analysisList.map((item) => item.registerTime), // 后端返回的时间数据
       axisLabel: {
         rotate: 45,
-        formatter: (value: string) => value.split('T')[1],
-        // formatter: (value: string) => value,
+        // formatter: (value: string) => value.split('T')[1],
+        formatter: (value: string) => value,
       }, // 旋转角度，防止时间重叠
     },
     yAxis: {
@@ -84,7 +85,7 @@ const getLineChartOption = (analysisList: API.SystemInfoVO[]) => {
   return option;
 };
 
-const getPieChartOption = (analysis: API.SystemInfoVO) => {
+const getPieChartOption = (analysis: API.AnalysisDataVO) => {
   let freeMemory = 0;
   let usedMemory = 0;
   let maxMemory = 0;
@@ -145,7 +146,7 @@ const getPieChartOption = (analysis: API.SystemInfoVO) => {
   return option;
 };
 
-const getPillarChartOption = (analysisList: API.SystemInfoVO[]) => {
+const getPillarChartOption = (analysisList: API.AnalysisDataVO[]) => {
   const option = {
     title: {
       text: 'GC 统计信息',
@@ -163,7 +164,8 @@ const getPillarChartOption = (analysisList: API.SystemInfoVO[]) => {
       data: analysisList.map((item) => item.registerTime), // 后端返回的时间数据
       axisLabel: {
         rotate: 45,
-        formatter: (value: string) => value.split('T')[1],
+        // formatter: (value: string) => value.split('T')[1],
+        formatter: (value: string) => value,
       },
     },
     yAxis: [
@@ -197,7 +199,7 @@ const getPillarChartOption = (analysisList: API.SystemInfoVO[]) => {
   return option;
 };
 
-const getDiskPieChartOption = (analysis: API.SystemInfoVO) => {
+const getDiskPieChartOption = (analysis: API.AnalysisDataVO) => {
   let diskUsed = 0;
   let diskFree = 0;
   if (analysis.diskFree && analysis.diskTotal) {
@@ -252,18 +254,47 @@ const getDiskPieChartOption = (analysis: API.SystemInfoVO) => {
 };
 
 const AnalysisDetail = (props: Props) => {
-  const [analysisList, setAnalysisList] = useState<API.SystemInfoVO[]>([]);
+  const [analysisList, setAnalysisList] = useState<API.AnalysisDataVO[]>([]);
   const [loading, setLoading] = useState(false);
+  const [lastAnalysis, setLastAnalysis] = useState<API.AnalysisDataVO>();
+  const [timeType, setTimeType] = useState<TimeType>('day');
 
-  const loadAnalysisData = async () => {
+  const loadAnalysisData = async (fTimeType: TimeType) => {
     setLoading(true);
-    let res = await analysis({ serverName: props.serverName } as any);
+    let res = await analysis({
+      serverName: props.serverName,
+      timeType: fTimeType,
+    } as any);
+    if (res.length > 0) {
+      setLastAnalysis(res[res.length - 1]);
+    }
+    if (fTimeType === 'month') {
+      res = res.map((item: API.AnalysisDataVO) => {
+        return {
+          ...item,
+          registerTime: item.registerTime
+            ? item.registerTime.split('T')[0]
+            : '',
+        };
+      });
+    }
+    if (fTimeType === 'day') {
+      res = res.map((item: API.AnalysisDataVO) => {
+        return {
+          ...item,
+          registerTime: item.registerTime
+            ? item.registerTime.split('T')[1]
+            : '',
+        };
+      });
+    }
+
     setAnalysisList(res);
     setLoading(false);
   };
 
   useEffect(() => {
-    loadAnalysisData();
+    loadAnalysisData(timeType);
   }, []);
 
   return (
@@ -273,9 +304,28 @@ const AnalysisDetail = (props: Props) => {
         ghost
         title={`服务名称:[${props.serverName}]`}
         extra={
-          <Button onClick={() => loadAnalysisData()} type="primary">
-            刷新
-          </Button>
+          <>
+            <Select
+              onChange={async (value: TimeType) => {
+                setTimeType(value);
+                await loadAnalysisData(value);
+                console.log('执行了请求数据');
+              }}
+              value={timeType}
+              style={{ width: 120, marginRight: 10 }}
+            >
+              <Select.Option value="day">24h</Select.Option>
+              <Select.Option value="month">1个月内</Select.Option>
+            </Select>
+            <Button
+              onClick={async () => {
+                await loadAnalysisData(timeType);
+              }}
+              type="primary"
+            >
+              刷新
+            </Button>
+          </>
         }
         bordered
         headerBordered
@@ -293,11 +343,7 @@ const AnalysisDetail = (props: Props) => {
           <ProCard bordered colSpan="50%">
             {analysisList.length > 0 && (
               <ReactECharts
-                option={
-                  analysisList.length > 10
-                    ? getPillarChartOption(analysisList.slice(0, 10))
-                    : getPillarChartOption(analysisList)
-                }
+                option={getPillarChartOption(analysisList)}
                 showLoading={loading}
               />
             )}
@@ -306,19 +352,17 @@ const AnalysisDetail = (props: Props) => {
 
         <ProCard.Group>
           <ProCard bordered colSpan="50%">
-            {analysis.length > 0 && analysisList[analysis.length - 1] && (
+            {lastAnalysis && (
               <ReactECharts
-                option={getPieChartOption(analysisList[analysis.length - 1])}
+                option={getPieChartOption(lastAnalysis)}
                 showLoading={loading}
               />
             )}
           </ProCard>
           <ProCard bordered colSpan="50%">
-            {analysis.length > 0 && analysisList[analysis.length - 1] && (
+            {lastAnalysis && (
               <ReactECharts
-                option={getDiskPieChartOption(
-                  analysisList[analysis.length - 1],
-                )}
+                option={getDiskPieChartOption(lastAnalysis)}
                 showLoading={loading}
               />
             )}

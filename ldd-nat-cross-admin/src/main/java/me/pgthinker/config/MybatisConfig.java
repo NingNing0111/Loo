@@ -40,7 +40,6 @@ public class MybatisConfig {
         return new MetaObjectHandler() {
             @Override
             public void insertFill(MetaObject metaObject) {
-                System.out.println("=============");
                 boolean createTime = metaObject.hasSetter("createTime");
                 boolean updateTime = metaObject.hasSetter("updateTime");
                 if (createTime && updateTime) {
