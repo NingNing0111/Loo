@@ -1,16 +1,19 @@
 package me.pgthinker.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import me.pgthinker.mapper.ServerClientMapper;
 import me.pgthinker.mapper.ServerInfoMapper;
+import me.pgthinker.model.entity.ServerClientDO;
 import me.pgthinker.model.entity.ServerInfoDO;
 import me.pgthinker.model.vo.ServerInfoVO;
+import me.pgthinker.model.vo.SimpleServerVO;
 import me.pgthinker.service.ServerInfoService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 public class ServerInfoServiceImpl implements ServerInfoService {
 
     private final ServerInfoMapper serverInfoMapper;
+    private final ServerClientMapper serverClientMapper;
 
     @Override
     public List<ServerInfoVO> list() {
@@ -38,12 +42,9 @@ public class ServerInfoServiceImpl implements ServerInfoService {
         Map<String, List<ServerInfoDO>> groupList = serverInfoDOS.stream().collect(Collectors.groupingBy(ServerInfoDO::getServerName));
         for (String key : groupList.keySet()) {
             List<ServerInfoDO> groupServers = groupList.get(key);
-            ServerInfoDO serverInfoDO = groupServers.get(0);
-            ServerInfoVO serverInfoVO = new ServerInfoVO();
-            BeanUtils.copyProperties(serverInfoDO, serverInfoVO);
-            res.add(serverInfoVO);
+            List<ServerInfoVO> handledServerInfoVOs = transform(groupServers);
+            res.add(handledServerInfoVOs.get(0));
         }
-
         return res;
     }
 
@@ -63,11 +64,34 @@ public class ServerInfoServiceImpl implements ServerInfoService {
         return res;
     }
 
+    @Override
+    public List<SimpleServerVO> simpleList() {
+        LambdaQueryWrapper<ServerInfoDO> qw = new LambdaQueryWrapper<>();
+        List<ServerInfoDO> serverInfoDOS = serverInfoMapper.selectList(qw);
+        List<String> serverName = serverInfoDOS.stream().map(ServerInfoDO::getServerName).collect(Collectors.toSet()).stream().toList();
+        return transform2Simple(serverName);
+    }
+
     private List<ServerInfoVO> transform(List<ServerInfoDO> serverInfoDOS) {
         return serverInfoDOS.stream().map(item -> {
             ServerInfoVO serverInfoVO = new ServerInfoVO();
             BeanUtils.copyProperties(item, serverInfoVO);
+            LambdaUpdateWrapper<ServerClientDO> clientQW = new LambdaUpdateWrapper<>();
+            clientQW.eq(ServerClientDO::getServerId, item.getId());
+            clientQW.eq(ServerClientDO::getIsLive, true);
+            Long clientCnt = serverClientMapper.selectCount(clientQW);
+            serverInfoVO.setLiveClientCnt(clientCnt);
             return serverInfoVO;
+        }).collect(Collectors.toList());
+    }
+    
+    private List<SimpleServerVO> transform2Simple(List<String> serverNames) {
+        return serverNames.stream().map(item -> {
+            SimpleServerVO simpleServerVO = new SimpleServerVO();
+            simpleServerVO.setServerName(item);
+            simpleServerVO.setLabel(item);
+            simpleServerVO.setValue(item);
+            return simpleServerVO;
         }).collect(Collectors.toList());
     }
 

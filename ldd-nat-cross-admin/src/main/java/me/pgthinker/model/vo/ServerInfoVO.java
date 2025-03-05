@@ -27,6 +27,7 @@ public class ServerInfoVO extends PageBaseVO{
     private String hostname;
 
     private LocalDateTime registerTime;
+    private Long liveClientCnt;
 
     /**
      * 是否存活

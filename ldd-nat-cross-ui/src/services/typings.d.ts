@@ -31,6 +31,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListServerClientDO = {
+    code?: number;
+    data?: ServerClientDO[];
+    message?: string;
+  };
+
   type BaseResponseListServerInfoVO = {
     code?: number;
     data?: ServerInfoVO[];
@@ -40,6 +46,12 @@ declare namespace API {
   type BaseResponseListServerSystemInfoDO = {
     code?: number;
     data?: ServerSystemInfoDO[];
+    message?: string;
+  };
+
+  type BaseResponseListSimpleServerVO = {
+    code?: number;
+    data?: SimpleServerVO[];
     message?: string;
   };
 
@@ -115,6 +127,22 @@ declare namespace API {
     pages?: number;
   };
 
+  type ServerClientDO = {
+    createTime?: string;
+    updateTime?: string;
+    deleted?: boolean;
+    id?: number;
+    serverId?: string;
+    clientHost?: string;
+    clientPort?: number;
+    licenseKey?: string;
+    isLive?: boolean;
+  };
+
+  type serverClientListParams = {
+    arg0: string;
+  };
+
   type ServerInfoVO = {
     page?: number;
     pageSize?: number;
@@ -125,6 +153,7 @@ declare namespace API {
     osVersion?: string;
     hostname?: string;
     registerTime?: string;
+    liveClientCnt?: number;
     isLive?: boolean;
   };
 
@@ -155,6 +184,12 @@ declare namespace API {
 
   type ServerSystemReqVO = {
     serverId?: string;
+  };
+
+  type SimpleServerVO = {
+    serverName?: string;
+    label?: string;
+    value?: string;
   };
 
   type UserVO = {

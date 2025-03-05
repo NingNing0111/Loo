@@ -4,8 +4,6 @@ import me.pgthinker.admin.vo.HeartbeatDataVO;
 import me.pgthinker.admin.vo.RegisterServerVO;
 import me.pgthinker.admin.vo.ServerClientVO;
 import me.pgthinker.admin.vo.VisitorConfigVO;
-import me.pgthinker.model.entity.VisitorConfigDO;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -74,4 +72,6 @@ public interface AdminService {
      * @return
      */
     VisitorConfigVO visitorConfig(String serverName);
+
+
 }

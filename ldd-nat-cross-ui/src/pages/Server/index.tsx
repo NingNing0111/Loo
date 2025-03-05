@@ -67,10 +67,15 @@ const ServerInfoHistory = () => {
 
   const loadHistoryServerData = async () => {
     setLoading(true);
-    const res = await historyList({ ...param, ...pageParam } as any);
-    setServerInfoList(res.records as API.ServerInfoVO[]);
-    setPageParam({ ...pageParam, total: res.total });
-    setLoading(false);
+    try {
+      const res = await historyList({ ...param, ...pageParam } as any);
+      setServerInfoList(res.records as API.ServerInfoVO[]);
+      setPageParam({ ...pageParam, total: res.total });
+    } catch (e) {
+      messageApi.error('' + e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

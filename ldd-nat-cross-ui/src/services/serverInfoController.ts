@@ -26,3 +26,11 @@ export async function serverList(options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
+
+/** 此处后端没有提供注释 GET /server/simpleList */
+export async function simpleList(options?: { [key: string]: any }) {
+  return request<API.BaseResponseListSimpleServerVO>(`/api/server/simpleList`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}

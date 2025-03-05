@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import me.pgthinker.common.BaseResponse;
 import me.pgthinker.common.ResultUtils;
 import me.pgthinker.model.vo.ServerInfoVO;
+import me.pgthinker.model.vo.SimpleServerVO;
 import me.pgthinker.service.ServerInfoService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -35,5 +36,11 @@ public class ServerInfoController {
     @PreAuthorize("hasAnyAuthority('admin')")
     public BaseResponse<Page<ServerInfoVO>> historyList(ServerInfoVO serverInfoVO){
         return ResultUtils.success(serverInfoService.historyList(serverInfoVO));
+    }
+
+    @GetMapping("/simpleList")
+    @PreAuthorize("hasAnyAuthority('admin')")
+    public BaseResponse<List<SimpleServerVO>> simpleList(){
+        return ResultUtils.success(serverInfoService.simpleList());
     }
 }

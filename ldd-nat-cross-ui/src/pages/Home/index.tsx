@@ -1,5 +1,9 @@
 import { serverList } from '@/services/serverInfoController';
-import { ProjectOutlined, RedoOutlined } from '@ant-design/icons';
+import {
+  ProjectOutlined,
+  RedoOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 import {
   PageContainer,
   ProCard,
@@ -35,6 +39,9 @@ const HomePage: React.FC = () => {
   const serverDetail = (server: API.ServerInfoVO) => {
     navigate(`/server/${server.serverName}`);
   };
+  const clientDetail = (server: API.ServerInfoVO) => {
+    navigate(`/client/detail/${server.id}`);
+  };
 
   return (
     <PageContainer
@@ -59,12 +66,24 @@ const HomePage: React.FC = () => {
           key={item.id}
           bordered
           extra={
-            <Button
-              icon={<ProjectOutlined />}
-              onClick={() => serverDetail(item)}
-            >
-              查看详情
-            </Button>
+            <>
+              {item.isLive && (
+                <Button
+                  type="primary"
+                  style={{ marginRight: 20 }}
+                  icon={<SearchOutlined />}
+                  onClick={() => clientDetail(item)}
+                >
+                  查看详情
+                </Button>
+              )}
+              <Button
+                icon={<ProjectOutlined />}
+                onClick={() => serverDetail(item)}
+              >
+                接入日志
+              </Button>
+            </>
           }
         >
           <ProDescriptions column={3}>

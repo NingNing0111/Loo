@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.netty.channel.ChannelHandlerContext;
 import me.pgthinker.model.entity.ServerInfoDO;
 import me.pgthinker.model.vo.ServerInfoVO;
+import me.pgthinker.model.vo.SimpleServerVO;
 import org.springdoc.core.converters.models.Pageable;
 
 import java.util.List;
@@ -23,4 +24,5 @@ public interface ServerInfoService {
 
     Page<ServerInfoVO> historyList(ServerInfoVO serverInfoVO);
 
+    List<SimpleServerVO> simpleList();
 }

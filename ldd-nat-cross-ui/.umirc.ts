@@ -52,10 +52,17 @@ export default defineConfig({
       access: 'canAccess',
     },
     {
-      name: '系统设置',
+      name: '接入设置',
       path: '/setting',
       component: './Config',
       access: 'canAccess',
+    },
+    {
+      name: '客户端详情',
+      path: '/client/detail/:serverId',
+      component: './ClientDetail',
+      access: 'canAccess',
+      hideInMenu: true,
     },
   ],
   npmClient: 'pnpm',
@@ -70,7 +77,7 @@ export default defineConfig({
   openAPI: [
     {
       requestLibPath: "import { request } from 'umi'",
-      schemaPath: 'http://loo.mnzdna.xyz/api/v3/api-docs/default', // openapi 接口地址
+      schemaPath: 'http://localhost:7989/api/v3/api-docs/default', // openapi 接口地址
       mock: false,
       apiPrefix() {
         return "'/api'";

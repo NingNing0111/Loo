@@ -23,6 +23,7 @@ const OperationConfirm: React.FC<Props> = (props) => {
         cancelText={props.cancelText}
         onCancel={props.onCancel}
         onConfirm={props.onConfirm}
+        align={{ points: ['cc'] }}
       >
         <Button
           danger={props.danger}
