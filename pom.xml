@@ -116,6 +116,11 @@
                 <version>${mybatis.plus.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-annotation</artifactId>
+                <version>${mybatis.plus.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.alibaba.fastjson2</groupId>
                 <artifactId>fastjson2</artifactId>
                 <version>${fast.json.version}</version>

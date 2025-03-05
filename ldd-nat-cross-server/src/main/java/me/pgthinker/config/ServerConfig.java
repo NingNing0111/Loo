@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
+import me.pgthinker.admin.vo.VisitorConfigVO;
 import me.pgthinker.enums.CmdTypeProto.CmdType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +36,9 @@ public class ServerConfig {
     private Integer userChannelReadIdleTime = 0;
     private List<CmdType> msgLogRange = Collections.emptyList();
     private boolean isAllLog = false;
+    private List<String> blackList = Collections.emptyList();
+    private List<String> whiteList = Collections.emptyList();
+    private AdminConfig admin;
 
     /**
      * 密码加密不允许set覆盖

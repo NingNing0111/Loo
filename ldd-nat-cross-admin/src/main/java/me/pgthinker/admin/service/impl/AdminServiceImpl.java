@@ -3,13 +3,19 @@ package me.pgthinker.admin.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.pgthinker.admin.HeartbeatDataVO;
-import me.pgthinker.admin.RegisterServerVO;
+import me.pgthinker.admin.vo.HeartbeatDataVO;
+import me.pgthinker.admin.vo.RegisterServerVO;
 import me.pgthinker.admin.service.AdminService;
+import me.pgthinker.admin.vo.ServerClientVO;
+import me.pgthinker.admin.vo.VisitorConfigVO;
+import me.pgthinker.mapper.ServerClientMapper;
 import me.pgthinker.mapper.ServerInfoMapper;
 import me.pgthinker.mapper.ServerSystemInfoMapper;
+import me.pgthinker.mapper.VisitorConfigMapper;
+import me.pgthinker.model.entity.ServerClientDO;
 import me.pgthinker.model.entity.ServerInfoDO;
 import me.pgthinker.model.entity.ServerSystemInfoDO;
+import me.pgthinker.model.entity.VisitorConfigDO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +41,8 @@ public class AdminServiceImpl implements AdminService {
 
     private final ServerInfoMapper serverInfoMapper;
     private final ServerSystemInfoMapper systemInfoMapper;
+    private final ServerClientMapper serverClientMapper;
+    private final VisitorConfigMapper visitorConfigMapper;
 
     // 注册失败返回null
     @Transactional(rollbackFor = Exception.class)
@@ -152,5 +160,34 @@ public class AdminServiceImpl implements AdminService {
         qw.eq(ServerInfoDO::getIsLive, true);
         List<ServerInfoDO> serverInfoDOS = serverInfoMapper.selectList(qw);
         return serverInfoDOS.stream().map(ServerInfoDO::getServerName).toList();
+    }
+
+    @Override
+    public void addClient(ServerClientVO serverClientVO) {
+        ServerClientDO serverClientDO = new ServerClientDO();
+        BeanUtils.copyProperties(serverClientVO, serverClientDO);
+        serverClientDO.setIsLive(true);
+        serverClientMapper.insert(serverClientDO);
+    }
+
+    @Override
+    public void removeClient(String licenseKey) {
+        LambdaQueryWrapper<ServerClientDO> qw = new LambdaQueryWrapper<>();
+        qw.eq(ServerClientDO::getLicenseKey, licenseKey);
+        List<ServerClientDO> serverClientDOS = serverClientMapper.selectList(qw);
+        serverClientMapper.deleteByIds(serverClientDOS.stream().map(ServerClientDO::getId).toList());
+    }
+
+    @Override
+    public VisitorConfigVO visitorConfig(String serverName) {
+        LambdaQueryWrapper<VisitorConfigDO> qw = new LambdaQueryWrapper<>();
+        qw.eq(VisitorConfigDO::getServerName, serverName);
+        List<VisitorConfigDO> configs = visitorConfigMapper.selectList(qw);
+        if(!configs.isEmpty()) {
+            VisitorConfigVO visitorConfigVO = new VisitorConfigVO();
+            BeanUtils.copyProperties(configs.get(0), visitorConfigVO);
+            return visitorConfigVO;
+        }
+        return null;
     }
 }

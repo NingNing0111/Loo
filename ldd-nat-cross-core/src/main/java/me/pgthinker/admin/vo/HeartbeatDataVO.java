@@ -1,10 +1,9 @@
-package me.pgthinker.admin;
+package me.pgthinker.admin.vo;
 
 import cn.hutool.system.RuntimeInfo;
 import cn.hutool.system.SystemUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.File;
 import java.io.Serializable;

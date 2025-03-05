@@ -16,10 +16,10 @@ import java.net.UnknownHostException;
  * @Description:
  */
 @Configuration
-@ConfigurationProperties(prefix = "admin")
+@ConfigurationProperties(prefix = "server.admin")
 @Data
 public class AdminConfig {
-    private Boolean enabled;
+    private Boolean enabled = false;
     private String baseUrl;
     private String serverName = SystemUtil.getUserInfo().getName();
     private String serverHostname;

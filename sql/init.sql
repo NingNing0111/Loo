@@ -54,4 +54,29 @@ CREATE TABLE `user` (
 );
 
 
+DROP TABLE IF EXISTS `server_client`;
+CREATE TABLE `server_client` (
+    id BIGINT PRIMARY KEY  AUTO_INCREMENT COMMENT 'id',
+    server_id VARCHAR(255) NOT NULL COMMENT '服务端 ID',
+    client_host VARCHAR(255) NOT NULL COMMENT '接入的客户端主机地址',
+    client_port INT NOT NULL COMMENT '接入的客户端端口',
+    license_key VARCHAR(255) COMMENT '授权码',
+    is_live BOOLEAN DEFAULT FALSE COMMENT '是否存活 默认为 false',
+    create_time DATETIME NOT NULL DEFAULT  CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted bit(1) NOT NULL DEFAULT b'0' COMMENT '是否删除'
+);
+
+DROP TABLE IF EXISTS `visitor_config`;
+CREATE TABLE `visitor_config` (
+    id BIGINT PRIMARY KEY  AUTO_INCREMENT COMMENT 'id',
+    type INTEGER NOT NULL COMMENT '配置类型',
+    server_name VARCHAR(64) COMMENT '服务名称',
+    black_list TEXT COMMENT '黑名单',
+    white_list TEXT COMMENT '白名单',
+    create_time DATETIME NOT NULL DEFAULT  CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted bit(1) NOT NULL DEFAULT b'0' COMMENT '是否删除'
+)
+
 

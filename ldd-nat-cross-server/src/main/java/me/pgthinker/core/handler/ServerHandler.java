@@ -4,6 +4,9 @@ import cn.hutool.extra.spring.SpringUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import me.pgthinker.admin.AdminClient;
+import me.pgthinker.admin.IAdminClient;
+import me.pgthinker.admin.vo.ServerClientVO;
 import me.pgthinker.core.factory.IProcessMessageFactory;
 import me.pgthinker.core.manager.ServerManager;
 import me.pgthinker.core.process.ProcessMessageService;
@@ -41,6 +44,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<TransferDataMessa
         serverManager.removeMetaData(licenseKey);
         // 清理客户端Channel
         serverManager.removeClientChannel(ctx);
+        IAdminClient adminClient = SpringUtil.getBean(IAdminClient.class);
+        adminClient.removeClientInfo(licenseKey);
         ctx.close();
     }
 
@@ -48,7 +53,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<TransferDataMessa
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
         log.info("\nClient connect. Client hostname:{} port:{}", inetSocketAddress.getHostName(), inetSocketAddress.getPort());
-
     }
 
     @Override

@@ -1,6 +1,6 @@
 package me.pgthinker;
 
-import me.pgthinker.admin.HeartbeatDataVO;
+import me.pgthinker.admin.vo.HeartbeatDataVO;
 import org.junit.Test;
 
 /**

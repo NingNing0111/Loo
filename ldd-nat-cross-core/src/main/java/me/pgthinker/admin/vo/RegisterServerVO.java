@@ -1,4 +1,4 @@
-package me.pgthinker.admin;
+package me.pgthinker.admin.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -8,10 +8,7 @@ server:
 #  msg-log-range: transfer,disconnect,open_server,auth # 指定某个范围的日志
   all-log: true # 打开所有日志
 
-# 管理端配置
-admin:
-  enabled: true # 是否接入Admin端
-  base-url: http://loo.mnzdna.xyz/api
-  server-name: location_server
+
+
 
 
