@@ -29,7 +29,8 @@ public class ServerInfoDO extends BaseDO implements Serializable {
     private String osName;
     private String osArch;
     private String osVersion;
-    private String hostname;
+    private String serverHost;
+    private Integer serverPort;
 
     private LocalDateTime registerTime;
     private Boolean isLive; // 是否存活

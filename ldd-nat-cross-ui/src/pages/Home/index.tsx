@@ -10,7 +10,7 @@ import {
   ProDescriptions,
 } from '@ant-design/pro-components';
 import { useNavigate } from '@umijs/max';
-import { Button } from 'antd';
+import { Button, Empty } from 'antd';
 import { useEffect, useState } from 'react';
 import './index.less';
 
@@ -60,75 +60,83 @@ const HomePage: React.FC = () => {
       ]}
       loading={loading}
     >
-      {servers.map((item) => (
-        <ProCard
-          className="card"
-          key={item.id}
-          bordered
-          extra={
-            <>
-              {item.isLive && (
+      {servers.length > 0 ? (
+        servers.map((item) => (
+          <ProCard
+            className="card"
+            key={item.id}
+            bordered
+            extra={
+              <>
+                {item.isLive && (
+                  <Button
+                    type="primary"
+                    style={{ marginRight: 20 }}
+                    icon={<SearchOutlined />}
+                    onClick={() => clientDetail(item)}
+                  >
+                    查看详情
+                  </Button>
+                )}
                 <Button
-                  type="primary"
-                  style={{ marginRight: 20 }}
-                  icon={<SearchOutlined />}
-                  onClick={() => clientDetail(item)}
+                  icon={<ProjectOutlined />}
+                  onClick={() => serverDetail(item)}
                 >
-                  查看详情
+                  接入日志
                 </Button>
-              )}
-              <Button
-                icon={<ProjectOutlined />}
-                onClick={() => serverDetail(item)}
+              </>
+            }
+          >
+            <ProDescriptions column={3}>
+              <ProDescriptions.Item label="服务名称">
+                {item.serverName}
+              </ProDescriptions.Item>
+              <ProDescriptions.Item
+                label="注册时间"
+                fieldProps={{
+                  format: 'YYYY-MM-DD HH:mm:ss',
+                }}
+                valueType="dateTime"
               >
-                接入日志
-              </Button>
-            </>
-          }
-        >
-          <ProDescriptions column={3}>
-            <ProDescriptions.Item label="服务名称">
-              {item.serverName}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item
-              label="注册时间"
-              fieldProps={{
-                format: 'YYYY-MM-DD HH:mm:ss',
-              }}
-              valueType="dateTime"
-            >
-              {item.registerTime}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item
-              label="在线状态"
-              valueEnum={{
-                true: {
-                  text: '在线',
-                  status: 'Success',
-                },
-                false: {
-                  text: '离线',
-                  status: 'Error',
-                },
-              }}
-            >
-              {item.isLive}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item label="接入主机" copyable>
-              {item.hostname}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item label="操作系统名称">
-              {item.osName}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item label="操作系统版本">
-              {item.osVersion}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item label="操作系统架构">
-              {item.osArch}
-            </ProDescriptions.Item>
-          </ProDescriptions>
-        </ProCard>
-      ))}
+                {item.registerTime}
+              </ProDescriptions.Item>
+              <ProDescriptions.Item
+                label="在线状态"
+                valueEnum={{
+                  true: {
+                    text: '在线',
+                    status: 'Success',
+                  },
+                  false: {
+                    text: '离线',
+                    status: 'Error',
+                  },
+                }}
+              >
+                {item.isLive}
+              </ProDescriptions.Item>
+
+              <ProDescriptions.Item label="操作系统名称">
+                {item.osName}
+              </ProDescriptions.Item>
+              <ProDescriptions.Item label="操作系统版本">
+                {item.osVersion}
+              </ProDescriptions.Item>
+              <ProDescriptions.Item label="操作系统架构">
+                {item.osArch}
+              </ProDescriptions.Item>
+              <ProDescriptions.Item label="服务端IP" copyable>
+                {item.serverHost}
+              </ProDescriptions.Item>
+              <ProDescriptions.Item label="服务端端口" copyable>
+                {item.serverPort}
+              </ProDescriptions.Item>
+            </ProDescriptions>
+          </ProCard>
+        ))
+      ) : (
+        <Empty />
+      )}
     </PageContainer>
   );
 };

@@ -20,4 +20,7 @@ public interface ServerClientService {
      */
     List<ServerClientDO> clientList(String serverId);
 
+
+    void offline(Long clientId);
+
 }

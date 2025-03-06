@@ -3,27 +3,20 @@ package me.pgthinker.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.pgthinker.admin.common.AdminConstants;
 import me.pgthinker.mapper.ServerInfoMapper;
 import me.pgthinker.mapper.ServerSystemInfoMapper;
 import me.pgthinker.model.entity.ServerInfoDO;
 import me.pgthinker.model.entity.ServerSystemInfoDO;
 import me.pgthinker.model.vo.AnalysisDataVO;
-import me.pgthinker.model.vo.ServerInfoVO;
 import me.pgthinker.model.vo.ServerSystemReqVO;
 import me.pgthinker.model.vo.SystemInfoVO;
 import me.pgthinker.service.ServerSystemInfoService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @Project: me.pgthinker.service.impl
@@ -66,6 +59,30 @@ public class ServerSystemInfoServiceImpl implements ServerSystemInfoService {
 
     }
 
+    @Override
+    public AnalysisDataVO lastSystemData(String serverName) {
+        LambdaQueryWrapper<ServerInfoDO> qw = new LambdaQueryWrapper<>();
+        qw.eq(ServerInfoDO::getServerName, serverName);
+        qw.eq(ServerInfoDO::getIsLive, true);
+        qw.orderByDesc(ServerInfoDO::getRegisterTime);
+        List<ServerInfoDO> serverInfoDOS = serverInfoMapper.selectList(qw);
+
+        if (ObjectUtils.isEmpty(serverInfoDOS)) {
+            return null;
+        }
+        ServerInfoDO serverInfoDO = serverInfoDOS.get(0);
+        LambdaQueryWrapper<ServerSystemInfoDO> systemQW = new LambdaQueryWrapper<>();
+        systemQW.eq(ServerSystemInfoDO::getServerId, serverInfoDO.getId());
+        systemQW.orderByDesc(ServerSystemInfoDO::getRegisterTime);
+        List<ServerSystemInfoDO> systemInfos = serverSystemInfoMapper.selectList(systemQW);
+        if (ObjectUtils.isEmpty(systemInfos)) {
+            return null;
+        }
+        ServerSystemInfoDO serverSystemInfoDO = systemInfos.get(0);
+
+        return transform2AnalysisDataVO(serverSystemInfoDO);
+    }
+
     private List<SystemInfoVO> transform(List<ServerSystemInfoDO> systemInfoDOS) {
         List<SystemInfoVO> res = systemInfoDOS.stream().map(item -> {
             SystemInfoVO systemInfoVO = new SystemInfoVO();
@@ -73,5 +90,11 @@ public class ServerSystemInfoServiceImpl implements ServerSystemInfoService {
             return systemInfoVO;
         }).toList();
         return res;
+    }
+
+    private AnalysisDataVO transform2AnalysisDataVO(ServerSystemInfoDO serverSystemInfoDO) {
+        AnalysisDataVO analysisDataVO = new AnalysisDataVO();
+        BeanUtils.copyProperties(serverSystemInfoDO, analysisDataVO);
+        return analysisDataVO;
     }
 }

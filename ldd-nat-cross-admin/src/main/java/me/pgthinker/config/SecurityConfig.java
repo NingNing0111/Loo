@@ -3,7 +3,6 @@ package me.pgthinker.config;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import me.pgthinker.filter.JwtAuthenticationFilter;
-import me.pgthinker.model.enums.RoleEnum;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;

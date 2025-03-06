@@ -6,10 +6,7 @@ import me.pgthinker.common.ResultUtils;
 import me.pgthinker.model.entity.ServerClientDO;
 import me.pgthinker.service.ServerClientService;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -31,6 +28,14 @@ public class ServerClientController {
     @PreAuthorize("hasAnyAuthority('admin')")
     public BaseResponse<List<ServerClientDO>> serverClientList(@RequestParam(name = "serverId") String serverId) {
         return ResultUtils.success(service.clientList(serverId));
+    }
+
+
+    @PostMapping("/offline/{clientId}")
+    @PreAuthorize("hasAnyAuthority('admin')")
+    public BaseResponse<String> offlineClient(@PathVariable(name = "clientId") Long clientId) {
+        service.offline(clientId);
+        return ResultUtils.success("ok");
     }
 
 

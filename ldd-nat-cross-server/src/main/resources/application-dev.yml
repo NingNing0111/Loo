@@ -7,4 +7,5 @@ server:
     server-name: location_server
     server-hostname: 127.0.0.1
 
+debug: true
 

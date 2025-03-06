@@ -1,5 +1,6 @@
 package me.pgthinker.admin;
 
+import io.netty.channel.ChannelHandlerContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -9,10 +10,12 @@ import me.pgthinker.admin.vo.RegisterServerVO;
 import me.pgthinker.admin.vo.ServerClientVO;
 import me.pgthinker.admin.vo.VisitorConfigVO;
 import me.pgthinker.common.BaseResponse;
-import me.pgthinker.config.AdminConfig;
+import me.pgthinker.config.ServerConfig;
+import me.pgthinker.core.manager.ServerManager;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -28,15 +31,16 @@ import java.util.TimerTask;
 @Component
 public class AdminClient implements IAdminClient {
     private final RestTemplate restTemplate;
-    private final AdminConfig adminConfig;
+    private final ServerConfig serverConfig;
+    private final ServerManager serverManager;
     @Getter
     @Setter
     private String serverId;
 
     @Override
     public String register() {
-        String registerUrl = String.format("%s/admin/register", adminConfig.getBaseUrl());
-        RegisterServerVO registerServerVO = new RegisterServerVO(adminConfig.getServerName(), adminConfig.getServerHostname());
+        String registerUrl = String.format("%s/admin/register", serverConfig.getAdmin().getBaseUrl());
+        RegisterServerVO registerServerVO = new RegisterServerVO(serverConfig.getAdmin().getServerName(), serverConfig.getAdmin().getServerHostname(), serverConfig.getPort());
         String serverId = null;
         try {
             log.info("register Url:{} ,request body:{}", registerUrl, registerServerVO);
@@ -54,7 +58,7 @@ public class AdminClient implements IAdminClient {
 
     @Override
     public void startHeartbeat(String serverId) {
-        String heartbeatUrl = String.format("%s/admin/heartbeat/%s", adminConfig.getBaseUrl(), serverId);
+        String heartbeatUrl = String.format("%s/admin/heartbeat/%s", serverConfig.getAdmin().getBaseUrl(), serverId);
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -73,7 +77,7 @@ public class AdminClient implements IAdminClient {
 
     @Override
     public VisitorConfigVO readVisitorList() {
-        String visitorUrl = String.format("%s/admin/config/visitor/%s", adminConfig.getBaseUrl(), adminConfig.getServerName());
+        String visitorUrl = String.format("%s/admin/config/visitor/%s", serverConfig.getAdmin().getBaseUrl(), serverConfig.getAdmin().getServerName());
         VisitorConfigVO visitorConfig = null;
         try {
             BaseResponse res = restTemplate.getForObject(visitorUrl, BaseResponse.class);
@@ -88,7 +92,7 @@ public class AdminClient implements IAdminClient {
 
     @Override
     public void addClientInfo (ServerClientVO serverClientVO) {
-        String addClientInfoUrl = String.format("%s/admin/client/add", adminConfig.getBaseUrl());
+        String addClientInfoUrl = String.format("%s/admin/client/add", serverConfig.getAdmin().getBaseUrl());
         try {
             log.debug("client info:{}", serverClientVO);
             BaseResponse baseResponse = restTemplate.postForObject(addClientInfoUrl, serverClientVO, BaseResponse.class);
@@ -100,14 +104,40 @@ public class AdminClient implements IAdminClient {
 
     @Override
     public void removeClientInfo(String licenseKey) {
-        String removeClientInfoUrl = String.format("%s/admin/client/delete/%s", adminConfig.getBaseUrl(), licenseKey);
+        String removeClientInfoUrl = String.format("%s/admin/client/delete/%s", serverConfig.getAdmin().getBaseUrl(), licenseKey);
         try {
-            log.debug("delete client info:{}", licenseKey);
             BaseResponse baseResponse = restTemplate.postForObject(removeClientInfoUrl, null , BaseResponse.class);
             log.debug("delete client info result: {}", baseResponse);
         }catch (Exception e){
             log.error(e.getMessage());
         }
+    }
+
+    @Override
+    public void startUpdateClient(String serverId) {
+        String updateClientUrl = String.format("%s/admin/client/offline/%s", serverConfig.getAdmin().getBaseUrl(), serverId);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    BaseResponse baseResponse = restTemplate.getForObject(updateClientUrl, BaseResponse.class);
+                    log.info("base response:{}", baseResponse);
+                    if(baseResponse != null && baseResponse.getCode() == 0 && baseResponse.getData() != null) {
+                        List<String> licenseKeys = (List<String>) baseResponse.getData();
+                        log.debug("license keys: {}", licenseKeys);
+                        licenseKeys.forEach(licenseKey -> {
+                            ChannelHandlerContext clientChannelCtx = serverManager.getClientChannelCtx(licenseKey);
+                            clientChannelCtx.close();
+                            log.debug("license [{}] -> close client channel ctx:{} ", licenseKey ,clientChannelCtx);
+                        });
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                    log.error(e.getMessage());
+                }
+            }
+        },0, 5000);
     }
 
 

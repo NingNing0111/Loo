@@ -25,6 +25,12 @@ declare namespace API {
     password?: string;
   };
 
+  type BaseResponseAnalysisDataVO = {
+    code?: number;
+    data?: AnalysisDataVO;
+    message?: string;
+  };
+
   type BaseResponseListAnalysisDataVO = {
     code?: number;
     data?: AnalysisDataVO[];
@@ -79,8 +85,28 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponsePageVisitorConfigVO = {
+    code?: number;
+    data?: PageVisitorConfigVO;
+    message?: string;
+  };
+
+  type BaseResponseString = {
+    code?: number;
+    data?: string;
+    message?: string;
+  };
+
+  type deleteVisitorConfigParams = {
+    serverName: string;
+  };
+
   type historyListParams = {
     arg0: ServerInfoVO;
+  };
+
+  type lastSystemDataParams = {
+    serverName: string;
   };
 
   type listParams = {
@@ -94,9 +120,18 @@ declare namespace API {
     token?: string;
   };
 
+  type offlineClientParams = {
+    clientId: number;
+  };
+
   type OrderItem = {
     column?: string;
     asc?: boolean;
+  };
+
+  type PageBaseVO = {
+    page?: number;
+    pageSize?: number;
   };
 
   type PageServerInfoVO = {
@@ -127,6 +162,20 @@ declare namespace API {
     pages?: number;
   };
 
+  type PageVisitorConfigVO = {
+    records?: VisitorConfigVO[];
+    total?: number;
+    size?: number;
+    current?: number;
+    orders?: OrderItem[];
+    optimizeCountSql?: PageVisitorConfigVO;
+    searchCount?: PageVisitorConfigVO;
+    optimizeJoinOfCountSql?: boolean;
+    maxLimit?: number;
+    countId?: string;
+    pages?: number;
+  };
+
   type ServerClientDO = {
     createTime?: string;
     updateTime?: string;
@@ -140,7 +189,7 @@ declare namespace API {
   };
 
   type serverClientListParams = {
-    arg0: string;
+    serverId: string;
   };
 
   type ServerInfoVO = {
@@ -151,7 +200,8 @@ declare namespace API {
     osName?: string;
     osArch?: string;
     osVersion?: string;
-    hostname?: string;
+    serverHost?: string;
+    serverPort?: number;
     registerTime?: string;
     liveClientCnt?: number;
     isLive?: boolean;
@@ -199,5 +249,17 @@ declare namespace API {
     username?: string;
     password?: string;
     role?: string;
+  };
+
+  type visitorConfigListParams = {
+    serverName: string;
+    arg1: PageBaseVO;
+  };
+
+  type VisitorConfigVO = {
+    type?: number;
+    serverName?: string;
+    blackList?: string[];
+    whiteList?: string[];
   };
 }

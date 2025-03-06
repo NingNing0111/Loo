@@ -74,4 +74,5 @@ public interface AdminService {
     VisitorConfigVO visitorConfig(String serverName);
 
 
+    List<String> clientOfflineList(String serverId);
 }

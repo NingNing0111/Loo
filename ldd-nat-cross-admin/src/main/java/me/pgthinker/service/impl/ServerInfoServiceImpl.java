@@ -36,16 +36,19 @@ public class ServerInfoServiceImpl implements ServerInfoService {
     public List<ServerInfoVO> list() {
         List<ServerInfoVO> res = new ArrayList<>();
         LambdaQueryWrapper<ServerInfoDO> qw = new LambdaQueryWrapper<>();
+        qw.eq(ServerInfoDO::getIsLive, true);
         qw.orderByDesc(ServerInfoDO::getIsLive);
         qw.orderByDesc(ServerInfoDO::getRegisterTime);
         List<ServerInfoDO> serverInfoDOS = serverInfoMapper.selectList(qw);
-        Map<String, List<ServerInfoDO>> groupList = serverInfoDOS.stream().collect(Collectors.groupingBy(ServerInfoDO::getServerName));
-        for (String key : groupList.keySet()) {
-            List<ServerInfoDO> groupServers = groupList.get(key);
-            List<ServerInfoVO> handledServerInfoVOs = transform(groupServers);
-            res.add(handledServerInfoVOs.get(0));
-        }
-        return res;
+//        Map<String, List<ServerInfoDO>> groupList = serverInfoDOS.stream().collect(Collectors.groupingBy(ServerInfoDO::getServerName));
+//        for (String key : groupList.keySet()) {
+//            List<ServerInfoDO> groupServers = groupList.get(key);
+//            List<ServerInfoVO> handledServerInfoVOs = transform(groupServers);
+//            res.add(handledServerInfoVOs.get(0));
+//        }
+        List<ServerInfoVO> handledServerInfoVOs = transform(serverInfoDOS);
+
+        return handledServerInfoVOs;
     }
 
     @Override

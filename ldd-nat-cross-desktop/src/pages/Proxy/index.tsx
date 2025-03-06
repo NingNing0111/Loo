@@ -132,19 +132,6 @@ const ProxyPage: React.FC = () => {
     setProxyLoading(false);
   };
 
-  useEffect(() => {
-    loadServerConfig();
-    loadProxyConfig();
-    listen<CommandResult>('app_err_handler', (event) => {
-      if (event.payload.code !== 0) {
-        messageApi.error({
-          content: event.payload.err,
-        });
-        setIsStart(false);
-      }
-    });
-  }, []);
-
   const toggleVisible = () => {
     setVisible((prev) => !prev);
   };
@@ -157,6 +144,27 @@ const ProxyPage: React.FC = () => {
     }, 1000);
   };
 
+  const unToggleTimer = () => {
+    if (timer !== null) {
+      clearInterval(timer);
+      setRunSeconds(0);
+    }
+  };
+
+  useEffect(() => {
+    loadServerConfig();
+    loadProxyConfig();
+    listen<CommandResult>('app_err_handler', (event) => {
+      if (event.payload.code !== 0) {
+        messageApi.error({
+          content: event.payload.err,
+        });
+        setIsStart(false);
+        unToggleTimer();
+      }
+    });
+  }, []);
+
   const onSelectServerConfig = async (value: ServerConfig[]) => {
     console.log(value);
     if (value.length === 1) {
@@ -168,8 +176,6 @@ const ProxyPage: React.FC = () => {
   };
 
   const onSelectProxyConfig = async (value: LocalProxyConfig[]) => {
-    console.log(value);
-
     setProxies(value);
   };
 
@@ -182,27 +188,16 @@ const ProxyPage: React.FC = () => {
     let res = await startApp(app_config);
     if (res.code === 0) {
       setIsStart(true);
-      // status = 1;
     }
-    // 插入连接日志
-    // await addConnectLog({
-    //   serverId: serverConfig.id as number,
-    //   proxyIds: proxies.map((item) => item.id as number),
-    //   operation: 0,
-    //   status: status,
-    //   connectedTime: Date.now(),
-    // });
   };
 
   const stop = async () => {
     let res = await stopApp();
-    // let status = 0;
     if (res.code === 0) {
       messageApi.open({
         type: 'success',
         content: res.msg,
       });
-      // status = 1;
     } else {
       messageApi.open({
         type: 'error',
@@ -210,14 +205,6 @@ const ProxyPage: React.FC = () => {
       });
     }
     setIsStart(false);
-    // // 插入断开连接日志
-    // await addConnectLog({
-    //   serverId: serverConfig.id as number,
-    //   proxyIds: proxies.map((item) => item.id as number),
-    //   operation: 1,
-    //   status,
-    //   connectedTime: Date.now(),
-    // });
   };
 
   const onApp = async () => {
@@ -226,10 +213,7 @@ const ProxyPage: React.FC = () => {
       // 开始计时
       toggleTimer();
     } else {
-      if (timer !== null) {
-        clearInterval(timer);
-        setRunSeconds(0);
-      }
+      unToggleTimer();
       await stop();
     }
   };

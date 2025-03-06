@@ -65,7 +65,8 @@ public class AdminServiceImpl implements AdminService {
         serverInfoDO.setServerName(registerServerVO.getServerName());
         serverInfoDO.setIsLive(true);
         serverInfoDO.setRegisterTime(LocalDateTime.now());
-        serverInfoDO.setHostname(registerServerVO.getHostname());
+        serverInfoDO.setServerHost(registerServerVO.getServerHost());
+        serverInfoDO.setServerPort(registerServerVO.getServerPort());
         serverInfoDO.setOsName(registerServerVO.getOsName());
         serverInfoDO.setOsVersion(registerServerVO.getOsVersion());
         serverInfoDO.setOsArch(registerServerVO.getOsArch());
@@ -189,5 +190,17 @@ public class AdminServiceImpl implements AdminService {
             return visitorConfigVO;
         }
         return null;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public List<String> clientOfflineList(String serverId) {
+        LambdaQueryWrapper<ServerClientDO> qw = new LambdaQueryWrapper<>();
+        qw.eq(ServerClientDO::getServerId, serverId);
+        qw.eq(ServerClientDO::getIsLive, false);
+        List<ServerClientDO> serverClientDOS = serverClientMapper.selectList(qw);
+        List<String> licenseKeys = serverClientDOS.stream().map(ServerClientDO::getLicenseKey).toList();
+        serverClientMapper.deleteByIds(serverClientDOS);
+        return licenseKeys;
     }
 }

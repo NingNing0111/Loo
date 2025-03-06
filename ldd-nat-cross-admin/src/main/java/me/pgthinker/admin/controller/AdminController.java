@@ -11,6 +11,8 @@ import me.pgthinker.common.BaseResponse;
 import me.pgthinker.common.ResultUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @Project: me.pgthinker.controller
  * @Author: NingNing0111
@@ -56,5 +58,11 @@ public class AdminController {
     @PermitAll
     public BaseResponse<VisitorConfigVO> getClientInfo(@PathVariable(name = "serverName") String serverName) {
         return ResultUtils.success(adminService.visitorConfig(serverName));
+    }
+
+    @GetMapping("/client/offline/{serverId}")
+    @PermitAll
+    public BaseResponse<List<String>> getClientOfflineList(@PathVariable(name = "serverId") String serverId) {
+        return ResultUtils.success(adminService.clientOfflineList(serverId));
     }
 }

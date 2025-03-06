@@ -6,7 +6,6 @@ import me.pgthinker.common.ResultUtils;
 import me.pgthinker.model.entity.ServerSystemInfoDO;
 import me.pgthinker.model.vo.AnalysisDataVO;
 import me.pgthinker.model.vo.ServerSystemReqVO;
-import me.pgthinker.model.vo.SystemInfoVO;
 import me.pgthinker.service.ServerSystemInfoService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,5 +40,11 @@ public class ServerSystemInfoController {
     @PreAuthorize("hasAnyAuthority('admin')")
     public BaseResponse<List<AnalysisDataVO>> analysis(@RequestParam("serverName") String serverName, @RequestParam("timeType") String timeType) {
         return ResultUtils.success(serverSystemInfoService.analysisData(serverName, timeType));
+    }
+
+    @GetMapping("/lastData")
+    @PreAuthorize("hasAnyAuthority('admin')")
+    public BaseResponse<AnalysisDataVO> lastSystemData(@RequestParam("serverName") String serverName) {
+        return ResultUtils.success(serverSystemInfoService.lastSystemData(serverName));
     }
 }

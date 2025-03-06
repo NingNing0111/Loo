@@ -19,17 +19,19 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class RegisterServerVO implements Serializable {
     private String serverName;
-    private String hostname;
+    private String serverHost;
+    private Integer serverPort;
     private String osName;
     private String osVersion;
     private String osArch;
 
-    public RegisterServerVO(String serverName, String hostname) {
+    public RegisterServerVO(String serverName, String serverHost, Integer serverPort) {
         String osName = System.getProperty(AdminConstants.OS_NAME);
         String osVersion = System.getProperty(AdminConstants.OS_VERSION);
         String osArch = System.getProperty(AdminConstants.OS_ARCH);
         this.setServerName(serverName);
-        this.setHostname(hostname);
+        this.setServerHost(serverHost);
+        this.setServerPort(serverPort);
         this.setOsName(osName);
         this.setOsVersion(osVersion);
         this.setOsArch(osArch);

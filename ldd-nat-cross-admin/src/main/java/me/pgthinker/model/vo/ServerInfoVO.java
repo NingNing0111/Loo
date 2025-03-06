@@ -24,7 +24,8 @@ public class ServerInfoVO extends PageBaseVO{
     private String osName;
     private String osArch;
     private String osVersion;
-    private String hostname;
+    private String serverHost;
+    private Integer serverPort;
 
     private LocalDateTime registerTime;
     private Long liveClientCnt;

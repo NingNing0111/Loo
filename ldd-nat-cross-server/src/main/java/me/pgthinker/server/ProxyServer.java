@@ -58,7 +58,7 @@ public class ProxyServer {
                 serverConfig.setWhiteList(whiteList);
             }
             adminClient.startHeartbeat(serverId);
-
+            adminClient.startUpdateClient(serverId);
         }
         startServer();
     }

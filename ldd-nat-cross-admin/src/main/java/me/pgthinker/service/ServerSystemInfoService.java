@@ -24,4 +24,5 @@ public interface ServerSystemInfoService {
     List<AnalysisDataVO> analysisData(String serverName, String timeType);
 
 
+    AnalysisDataVO lastSystemData(String serverName);
 }

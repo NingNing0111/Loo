@@ -16,4 +16,6 @@ public interface IAdminClient {
     VisitorConfigVO readVisitorList();
     void addClientInfo(ServerClientVO serverClientVO);
     void removeClientInfo(String licenseKey);
+
+    void startUpdateClient(String serverId);
 }

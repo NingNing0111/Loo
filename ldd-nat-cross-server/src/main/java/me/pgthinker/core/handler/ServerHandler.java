@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.admin.AdminClient;
 import me.pgthinker.admin.IAdminClient;
 import me.pgthinker.admin.vo.ServerClientVO;
+import me.pgthinker.config.ServerConfig;
 import me.pgthinker.core.factory.IProcessMessageFactory;
 import me.pgthinker.core.manager.ServerManager;
 import me.pgthinker.core.process.ProcessMessageService;
@@ -28,11 +29,13 @@ public class ServerHandler extends SimpleChannelInboundHandler<TransferDataMessa
     private final IProcessMessageFactory processMessageFactory;
     private final ServerManager serverManager;
     private final TcpServer tcpServer;
+    private final ServerConfig serverConfig;
 
     public ServerHandler(TcpServer tcpServer) {
         this.tcpServer = tcpServer;
         this.processMessageFactory = SpringUtil.getBean(IProcessMessageFactory.class);
         this.serverManager = SpringUtil.getBean(ServerManager.class);
+        this.serverConfig = SpringUtil.getBean(ServerConfig.class);
     }
 
     @Override
@@ -52,7 +55,15 @@ public class ServerHandler extends SimpleChannelInboundHandler<TransferDataMessa
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-        log.info("\nClient connect. Client hostname:{} port:{}", inetSocketAddress.getHostName(), inetSocketAddress.getPort());
+        String hostname = inetSocketAddress.getHostName();
+        List<String> blackList = serverConfig.getBlackList();
+        List<String> whiteList = serverConfig.getWhiteList();
+        if (blackList != null && blackList.contains(hostname) || whiteList != null && whiteList.contains(hostname)) {
+            log.error("\nClient can not allow to connect.");
+            ctx.close();
+        }else{
+            log.info("\nClient connect. Client hostname:{} port:{}", inetSocketAddress.getHostName(), inetSocketAddress.getPort());
+        }
     }
 
     @Override

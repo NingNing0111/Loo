@@ -1,4 +1,7 @@
-import { analysis } from '@/services/serverSystemInfoController';
+import {
+  analysis,
+  lastSystemData,
+} from '@/services/serverSystemInfoController';
 import { ProCard } from '@ant-design/pro-components';
 import { Button, Select } from 'antd';
 import ReactECharts from 'echarts-for-react';
@@ -265,9 +268,7 @@ const AnalysisDetail = (props: Props) => {
       serverName: props.serverName,
       timeType: fTimeType,
     } as any);
-    if (res.length > 0) {
-      setLastAnalysis(res[res.length - 1]);
-    }
+
     if (fTimeType === 'month') {
       res = res.map((item: API.AnalysisDataVO) => {
         return {
@@ -293,8 +294,29 @@ const AnalysisDetail = (props: Props) => {
     setLoading(false);
   };
 
+  const loadLastAnalysisData = async () => {
+    setLoading(true);
+    let res = await lastSystemData({ serverName: props.serverName } as any);
+    if (res) {
+      setLastAnalysis(res);
+    } else {
+      setLastAnalysis({
+        jvmMaxMemory: 0,
+        jvmTotalMemory: 0,
+        jvmFreeMemory: 0,
+        jvmUsableMemory: 0,
+        gcCount: 0,
+        gcTime: 0,
+        diskTotal: 0,
+        diskFree: 0,
+      });
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     loadAnalysisData(timeType);
+    loadLastAnalysisData();
   }, []);
 
   return (
@@ -320,6 +342,7 @@ const AnalysisDetail = (props: Props) => {
             <Button
               onClick={async () => {
                 await loadAnalysisData(timeType);
+                await loadLastAnalysisData();
               }}
               type="primary"
             >

@@ -1,5 +1,9 @@
 import OperationConfirm from '@/components/OperationConfirm';
-import { serverClientList } from '@/services/serverClientController';
+import {
+  offlineClient,
+  serverClientList,
+} from '@/services/serverClientController';
+import { RedoOutlined } from '@ant-design/icons';
 import {
   PageContainer,
   ProCard,
@@ -37,8 +41,13 @@ const PageClientDetail = () => {
   };
 
   const offline = async (data: API.ServerClientDO) => {
-    console.log(data);
-    messageApi.success('强制下线:' + JSON.stringify(data));
+    let res = await offlineClient({ clientId: data.id } as any);
+    if (res) {
+      messageApi.success('下线成功!');
+    } else {
+      messageApi.error(res.message);
+    }
+    loadClientList();
   };
 
   const clientListColumns: ProColumns<API.ServerClientDO>[] = [
@@ -99,7 +108,20 @@ const PageClientDetail = () => {
         title="客户端详情"
         extra={<Button onClick={() => navigator(-1)}> 返回 </Button>}
       >
-        <ProCard title="在线列表" bordered headerBordered>
+        <ProCard
+          title="在线列表"
+          bordered
+          headerBordered
+          extra={
+            <Button
+              type="primary"
+              icon={<RedoOutlined />}
+              onClick={() => loadClientList()}
+            >
+              刷新
+            </Button>
+          }
+        >
           <ProTable
             showHeader
             options={false}
