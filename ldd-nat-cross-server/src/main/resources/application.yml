@@ -5,7 +5,7 @@ spring:
 server:
   port: 8964
   password: 123456 # 服务端认证密码
-#  msg-log-range: transfer,disconnect,open_server,auth # 指定某个范围的日志
+#  msg-log-range: disconnect,open_server,auth # 指定某个范围的日志
   all-log: true # 打开所有日志
 
 

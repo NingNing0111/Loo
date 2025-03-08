@@ -18,6 +18,7 @@ import me.pgthinker.service.VisitorConfigService;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.executor.BatchResult;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,16 +80,23 @@ public class VisitorConfigServiceImpl implements VisitorConfigService {
         String serverName = visitorConfigVO.getServerName();
         List<String> blackList = visitorConfigVO.getBlackList();
         List<String> whiteList = visitorConfigVO.getWhiteList();
-        if(StringUtils.isEmpty(serverName) || blackList.isEmpty() || whiteList.isEmpty()) {
+        if(StringUtils.isEmpty(serverName)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        LambdaUpdateWrapper<VisitorConfigDO> uw = new LambdaUpdateWrapper<>();
-        uw.eq(VisitorConfigDO::getServerName,serverName);
-        uw.set(VisitorConfigDO::getBlackList,blackList);
-        uw.set(VisitorConfigDO::getWhiteList,whiteList);
-        int cnt = visitorConfigMapper.update(uw);
+        LambdaQueryWrapper<VisitorConfigDO> qw = new LambdaQueryWrapper<>();
+        qw.eq(VisitorConfigDO::getServerName, serverName);
+        List<VisitorConfigDO> visitorConfigDOS = visitorConfigMapper.selectList(qw);
+        visitorConfigDOS.forEach(item -> {
+            if(!blackList.isEmpty()) {
+                item.setBlackList(blackList);
+            }
+            if(!whiteList.isEmpty()) {
+                item.setWhiteList(whiteList);
+            }
+        });
+        List<BatchResult> res = visitorConfigMapper.updateById(visitorConfigDOS);
 
-        return (long) cnt;
+        return (long) res.size();
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -39,12 +39,7 @@ export default defineConfig({
       hideInMenu: true,
       access: 'canAccess',
     },
-    {
-      name: '用户管理',
-      path: '/user',
-      component: './User',
-      access: 'canAccess',
-    },
+
     {
       name: '服务监控',
       path: '/serverAnalysis',
@@ -64,15 +59,21 @@ export default defineConfig({
       access: 'canAccess',
       hideInMenu: true,
     },
+    {
+      name: '用户管理',
+      path: '/user',
+      component: './User',
+      access: 'canAccess',
+    },
   ],
   npmClient: 'pnpm',
-  proxy: {
-    '/api': {
-      target: 'http://localhost:7989',
-      changeOrigin: true,
-      secure: false,
-    },
-  },
+  // proxy: {
+  //   '/api': {
+  //     target: 'http://localhost:7989',
+  //     changeOrigin: true,
+  //     secure: false,
+  //   },
+  // },
   presets: ['umi-presets-pro'],
   openAPI: [
     {

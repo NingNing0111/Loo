@@ -35,21 +35,21 @@ public class ServerManager {
     // licenseKey -> clientCtx
     private static final Map<String, ChannelHandlerContext> CLIENT_CHANNEL = new ConcurrentHashMap<>();
     // openPort -> licenseKey
-    private static final Map<Integer, List<String>> LICENSE_KEY_DATA = new ConcurrentHashMap<>();
+    private static final Map<Integer, String> LICENSE_KEY_DATA = new ConcurrentHashMap<>();
     // openPort -> server
     private static final Map<Integer, TcpServer> PROXY_SERVER_DATA = new ConcurrentHashMap<>();
     // openPort -> meta
-    private static final Map<Integer, List<Map<String,String>>> PROXY_CONFIG_MAP = new ConcurrentHashMap<>();
+    private static final Map<Integer, Map<String,String>> PROXY_CONFIG_MAP = new ConcurrentHashMap<>();
     // visitorCtx -> visitorId
     private static final Map<ChannelHandlerContext, String> VISITOR_CHANNEL_CTX = new ConcurrentHashMap<>();
     /**
-     * cmdChannelAttachInfo.getUserChannelMap() 读写锁
+     * 读写锁
      */
     private static final ReadWriteLock userChannelMapLock = new ReentrantReadWriteLock();
 
     /**
      * 客户端与服务端进行认证授权后 得到clientChannel->licenseKey的映射
-     * @param targetChannel
+     * @param clientChannel
      * @return 授权密钥
      *
      *        |--id-1--- client1
@@ -57,9 +57,9 @@ public class ServerManager {
      *        |--id-3--- client3
      *
      */
-    public String addClientChannel(ChannelHandlerContext targetChannel) {
+    public String addClientChannel(ChannelHandlerContext clientChannel) {
         String licenseKey = MD5.create().digestHex16(UUID.randomUUID().toString());
-        CLIENT_CHANNEL.put(licenseKey, targetChannel);
+        CLIENT_CHANNEL.put(licenseKey, clientChannel);
         return licenseKey;
     }
 
@@ -84,16 +84,16 @@ public class ServerManager {
     }
 
     /**
-     * 多个ChannelHandlerContext
+     * 一个ChannelHandlerContext
      * @param openPort
      * @return
      */
-    public List<ChannelHandlerContext> getClientChannelCtx(Integer openPort) {
-        List<String> licenseKeys = LICENSE_KEY_DATA.get(openPort);
-        if(!licenseKeys.isEmpty()){
-            return licenseKeys.stream().map(this::getClientChannelCtx).collect(Collectors.toList());
+    public ChannelHandlerContext getClientChannelCtx(Integer openPort) {
+        String licenseKey = LICENSE_KEY_DATA.get(openPort);
+        if(!licenseKey.isEmpty()){
+            return this.getClientChannelCtx(licenseKey);
         }
-        return Collections.emptyList();
+        return null;
     }
 
     /**
@@ -106,53 +106,58 @@ public class ServerManager {
     }
 
     public void addMetaData(Integer openPort, Map<String,String> metaData) {
-        // 先从 Map 中获取现有的 metas 列表
-        List<Map<String, String>> metas = PROXY_CONFIG_MAP.get(openPort);
-        if (metas == null) {
-            metas = new ArrayList<>();
-        } else {
-            metas = new ArrayList<>(metas);
-        }
-        metas.add(metaData);
-        PROXY_CONFIG_MAP.put(openPort, metas);
+        PROXY_CONFIG_MAP.put(openPort, metaData);
     }
 
-    public List<Map<String, String>> getMetaData(Integer openPort){
+    public Map<String, String> getMetaData(Integer openPort){
         return PROXY_CONFIG_MAP.getOrDefault(openPort, null);
     }
 
     public void removeMetaData(String licenseKey) {
         for(Integer port: PROXY_CONFIG_MAP.keySet()){
-            List<Map<String, String>> maps = PROXY_CONFIG_MAP.get(port);
-            List<Map<String, String>> res = maps.stream().filter(item -> !StrUtil.equals(licenseKey, item.get(Constants.LICENSE_KEY))).toList();
-            PROXY_CONFIG_MAP.put(port, res);
+            Map<String, String> maps = PROXY_CONFIG_MAP.get(port);
+            String storeKey = maps.get(Constants.LICENSE_KEY);
+            if(StrUtil.equals(licenseKey, storeKey)){
+               PROXY_CONFIG_MAP.remove(port);
+            }
         }
     }
 
     // 当有visitor连接时 上锁
-    public String addVisitorCtx(ChannelHandlerContext ctx){
+    public String addVisitorCtx(ChannelHandlerContext visitorCtx){
+        String visitorId = visitorCtx.channel().id().asLongText();
         userChannelMapLock.writeLock().lock();
-        String visitorId = UUID.randomUUID().toString();
-        VISITOR_CHANNEL_CTX.put(ctx, visitorId);
-        userChannelMapLock.writeLock().unlock();
+        try {
+            VISITOR_CHANNEL_CTX.put(visitorCtx, visitorId);
+        }finally {
+            userChannelMapLock.writeLock().unlock();
+        }
+
         return visitorId;
     }
 
-    public void removeVisitorCtx(ChannelHandlerContext ctx) {
+    public void removeVisitorCtx(ChannelHandlerContext visitorCtx) {
         userChannelMapLock.writeLock().lock();
-        VISITOR_CHANNEL_CTX.remove(ctx);
-        userChannelMapLock.writeLock().unlock();
+        try {
+            this.removeVisitorCtx(visitorCtx.channel().id().asLongText());
+        } finally {
+            userChannelMapLock.writeLock().unlock();
+        }
     }
 
     public void removeVisitorCtx(String visitorId){
         userChannelMapLock.readLock().lock();
-        for(ChannelHandlerContext ctx: VISITOR_CHANNEL_CTX.keySet()) {
-            String storeVisitorId = VISITOR_CHANNEL_CTX.get(ctx);
-            if(visitorId.equals(storeVisitorId)){
-                VISITOR_CHANNEL_CTX.remove(ctx);
+        try {
+            for(ChannelHandlerContext ctx: VISITOR_CHANNEL_CTX.keySet()) {
+                String storeVisitorId = VISITOR_CHANNEL_CTX.get(ctx);
+                if(visitorId.equals(storeVisitorId)){
+                    VISITOR_CHANNEL_CTX.remove(ctx);
+                }
             }
+        } finally {
+            userChannelMapLock.readLock().unlock();
         }
-        userChannelMapLock.readLock().unlock();
+
     }
 
     public ChannelHandlerContext getVisitorCtx(String visitorId){
@@ -170,14 +175,7 @@ public class ServerManager {
     }
 
     public void addProxyPort(String licenseKey, Integer port) {
-        List<String> licenseKeys;
-        if(!LICENSE_KEY_DATA.containsKey(licenseKey)) {
-            licenseKeys = new ArrayList<>();
-        }else{
-            licenseKeys = LICENSE_KEY_DATA.get(port);
-        }
-        licenseKeys.add(licenseKey);
-        LICENSE_KEY_DATA.put(port, licenseKeys);
+        LICENSE_KEY_DATA.put(port, licenseKey);
     }
 
     public void addTcpServer(Integer port, TcpServer tcpServer) {

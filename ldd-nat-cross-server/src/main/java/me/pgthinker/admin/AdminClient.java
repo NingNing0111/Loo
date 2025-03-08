@@ -43,7 +43,7 @@ public class AdminClient implements IAdminClient {
         RegisterServerVO registerServerVO = new RegisterServerVO(serverConfig.getAdmin().getServerName(), serverConfig.getAdmin().getServerHostname(), serverConfig.getPort());
         String serverId = null;
         try {
-            log.info("register Url:{} ,request body:{}", registerUrl, registerServerVO);
+            log.debug("register Url:{} ,request body:{}", registerUrl, registerServerVO);
             BaseResponse baseResponse = restTemplate.postForObject(registerUrl, registerServerVO, BaseResponse.class);
             if (baseResponse != null && baseResponse.getCode() == 0 && baseResponse.getData() != null) {
                 serverId = baseResponse.getData().toString();
@@ -122,7 +122,7 @@ public class AdminClient implements IAdminClient {
             public void run() {
                 try {
                     BaseResponse baseResponse = restTemplate.getForObject(updateClientUrl, BaseResponse.class);
-                    log.info("base response:{}", baseResponse);
+                    log.debug("base response:{}", baseResponse);
                     if(baseResponse != null && baseResponse.getCode() == 0 && baseResponse.getData() != null) {
                         List<String> licenseKeys = (List<String>) baseResponse.getData();
                         log.debug("license keys: {}", licenseKeys);

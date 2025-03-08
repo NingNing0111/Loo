@@ -166,7 +166,6 @@ const ProxyPage: React.FC = () => {
   }, []);
 
   const onSelectServerConfig = async (value: ServerConfig[]) => {
-    console.log(value);
     if (value.length === 1) {
       setServerConfig(value[0]);
       // 修改全局
@@ -186,6 +185,8 @@ const ProxyPage: React.FC = () => {
     };
     // let status = 0;
     let res = await startApp(app_config);
+    console.log(res);
+
     if (res.code === 0) {
       setIsStart(true);
     }

@@ -1,9 +1,10 @@
-import AddConfigBox from '@/components/AddConfigBox';
+import ConfigBox from '@/components/ConfigBox';
 import OperationConfirm from '@/components/OperationConfirm';
 import { simpleList } from '@/services/serverInfoController';
 import {
   addVisitorConfig,
   deleteVisitorConfig,
+  updateVisitorConfig,
   visitorConfigList,
 } from '@/services/visitorConfigController';
 import { PlusCircleOutlined, RedoOutlined } from '@ant-design/icons';
@@ -100,6 +101,37 @@ const PageConfig = () => {
     }
   };
 
+  const editConfig = async (formData: {
+    serverName: string;
+    blackListStr: string;
+    whiteListStr: string;
+  }) => {
+    let blackList: string[] = [];
+    let whiteList: string[] = [];
+    if (formData.blackListStr) {
+      blackList = formData.blackListStr.split(',');
+    }
+    if (formData.whiteListStr) {
+      whiteList = formData.whiteListStr.split(',');
+    }
+    let data: API.VisitorConfigVO = {
+      ...formData,
+      blackList,
+      whiteList,
+    };
+
+    try {
+      let res = await updateVisitorConfig(data);
+      if (res) {
+        messageApi.success('编辑成功');
+      }
+    } catch (e) {
+      messageApi.error('' + e);
+    } finally {
+      loadConfigList('');
+    }
+  };
+
   const configColumns: ProColumns<API.VisitorConfigVO>[] = [
     {
       title: '序号',
@@ -166,9 +198,20 @@ const PageConfig = () => {
             await deleteConfig(record);
           }}
         />,
-        <Button key="editConfig" type="primary" size="small">
-          编辑
-        </Button>,
+        <ConfigBox
+          key="editConfig"
+          btnName="编辑"
+          serverOptions={[]}
+          title="编辑配置"
+          onFinish={async (value) => {
+            await editConfig(value);
+          }}
+          type="update"
+          initialValues={{
+            ...record,
+          }}
+          btnSize="small"
+        />,
       ],
     },
   ];
@@ -193,7 +236,8 @@ const PageConfig = () => {
               >
                 刷新
               </Button>
-              <AddConfigBox
+              <ConfigBox
+                type="add"
                 title="新增配置"
                 btnName="新增"
                 onFinish={addConfig}

@@ -1,20 +1,15 @@
 package me.pgthinker.core.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.pgthinker.ProxyConfig;
 import me.pgthinker.common.Constants;
 import me.pgthinker.helper.TransferDataMessageHelper;
 import me.pgthinker.message.TransferDataMessageProto.TransferDataMessage;
 
-import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Map;
 
 /**

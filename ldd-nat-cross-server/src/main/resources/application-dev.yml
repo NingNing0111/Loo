@@ -2,7 +2,7 @@
 server:
   # 管理端配置
   admin:
-    enabled: true # 是否接入Admin端
+    enabled: false # 是否接入Admin端
     base-url: http://localhost:7989/api
     server-name: location_server
     server-hostname: 127.0.0.1

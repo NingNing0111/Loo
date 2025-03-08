@@ -4,9 +4,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
-import me.pgthinker.admin.AdminClient;
 import me.pgthinker.admin.IAdminClient;
-import me.pgthinker.admin.vo.ServerClientVO;
 import me.pgthinker.config.ServerConfig;
 import me.pgthinker.core.factory.IProcessMessageFactory;
 import me.pgthinker.core.manager.ServerManager;
@@ -68,7 +66,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<TransferDataMessa
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, TransferDataMessage transferDataMessage) throws Exception {
-        log.debug("cmd:{}", transferDataMessage.getCmdType());
         ProcessMessageService processService = processMessageFactory.getProcessService(transferDataMessage.getCmdType());
         processService.process(channelHandlerContext, transferDataMessage);
     }

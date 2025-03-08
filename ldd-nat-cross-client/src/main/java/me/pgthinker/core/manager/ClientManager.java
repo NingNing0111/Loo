@@ -1,7 +1,5 @@
 package me.pgthinker.core.manager;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.core.handler.LocalProxyHandler;
 

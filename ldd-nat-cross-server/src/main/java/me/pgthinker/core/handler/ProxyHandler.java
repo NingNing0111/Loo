@@ -1,6 +1,5 @@
 package me.pgthinker.core.handler;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -15,9 +14,7 @@ import me.pgthinker.message.TransferDataMessageProto.TransferDataMessage;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @Project: me.pgthinker.core.handler
@@ -29,12 +26,14 @@ import java.util.Objects;
 public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private final ServerManager serverManager;
+
     public ProxyHandler() {
         this.serverManager = SpringUtil.getBean(ServerManager.class);
     }
 
     /**
      * 发送Disconnect消息
+     *
      * @param ctx
      * @throws Exception
      */
@@ -42,25 +41,28 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // 根据openPort 获取对应的客户端
         Integer port = getPort(ctx);
-        List<ChannelHandlerContext> clientChannelCtx = serverManager.getClientChannelCtx(port);
-        clientChannelCtx.stream().filter(ObjectUtil::isNotEmpty).forEach(clientCtx -> {
-            List<Map<String,String>> metas = serverManager.getMetaData(port);
-            metas.forEach(meta->{
-                String licenseKey = meta.get(Constants.LICENSE_KEY);
-                ProxyConfig proxyConfig = ProxyConfig.fromMap(meta);
-                String visitorId = serverManager.getVisitorId(ctx);
-                TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-                TransferDataMessage message;
-                message = transferDataMessageHelper.buildDisconnectMessage(proxyConfig, visitorId);
-                clientCtx.writeAndFlush(message);
-            });
-        });
+        ChannelHandlerContext clientChannelCtx = serverManager.getClientChannelCtx(port);
+        if (clientChannelCtx == null) {
+            ctx.close();
+            return;
+        }
+        Map<String, String> meta = serverManager.getMetaData(port);
+        if (meta != null) {
+            String licenseKey = meta.get(Constants.LICENSE_KEY);
+            ProxyConfig proxyConfig = ProxyConfig.fromMap(meta);
+            String visitorId = serverManager.getVisitorId(ctx);
+            TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+            TransferDataMessage message;
+            message = transferDataMessageHelper.buildDisconnectMessage(proxyConfig, visitorId);
+            clientChannelCtx.writeAndFlush(message);
+        }
         ctx.close();
         serverManager.removeVisitorCtx(ctx);
     }
 
     /**
      * 发送Connect消息
+     *
      * @param ctx
      * @throws Exception
      */
@@ -68,56 +70,53 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         // 根据openPort 获取对应的客户端
         Integer port = getPort(ctx);
-        List<ChannelHandlerContext> clientChannelCtx = serverManager.getClientChannelCtx(port);
-
+        ChannelHandlerContext clientChannelCtx = serverManager.getClientChannelCtx(port);
+        // 还没有对应的客户端Channel 则关闭
+        if (clientChannelCtx == null) {
+            ctx.channel().close();
+            return;
+        }
+        // 端口没有对应的映射信息
+        Map<String, String> meta = serverManager.getMetaData(port);
+        if (meta == null) {
+            ctx.channel().close();
+            return;
+        }
         String visitorId = serverManager.addVisitorCtx(ctx);
-        // 构建连接消息体
-        clientChannelCtx.stream().filter(ObjectUtil::isNotEmpty).forEach(clientCtx->{
-            List<Map<String,String>> metas = serverManager.getMetaData(port);
-            metas.forEach(metaData->{
-                ctx.channel().config().setOption(ChannelOption.AUTO_READ, false);
-                String licenseKey = metaData.get(Constants.LICENSE_KEY);
-                ProxyConfig proxyConfig = ProxyConfig.fromMap(metaData);
-                TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-                TransferDataMessage message;
-                message = transferDataMessageHelper.buildConnectMessage(proxyConfig, visitorId);
-                clientCtx.writeAndFlush(message);
-            });
-
-        });
-
+        // 等待实际的连接成功 再允许读
+        ctx.channel().config().setOption(ChannelOption.AUTO_READ, false);
+        String licenseKey = meta.get(Constants.LICENSE_KEY);
+        ProxyConfig proxyConfig = ProxyConfig.fromMap(meta);
+        TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+        TransferDataMessage message;
+        message = transferDataMessageHelper.buildConnectMessage(proxyConfig, visitorId);
+        clientChannelCtx.writeAndFlush(message);
     }
 
     private Integer getPort(ChannelHandlerContext ctx) {
-        InetSocketAddress socketAddress = (InetSocketAddress)ctx.channel().localAddress();
+        InetSocketAddress socketAddress = (InetSocketAddress) ctx.channel().localAddress();
         return socketAddress.getPort();
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception {
         Integer port = getPort(ctx);
-        // 端口复用 一个端口对应多个客户端
-        List<ChannelHandlerContext> clientChannelCtx = serverManager.getClientChannelCtx(port);
+        ChannelHandlerContext clientChannelCtx = serverManager.getClientChannelCtx(port);
+        if (clientChannelCtx == null) {
+            ctx.channel().close();
+            return;
+        }
+        ctx.channel().config().setAutoRead(clientChannelCtx.channel().isWritable());
         String visitorId = serverManager.getVisitorId(ctx);
-        // 将数据发布到每个客户端
-        clientChannelCtx.stream().filter(ObjectUtil::isNotEmpty).forEach(clientCtx->{
-            if(clientCtx.channel().config().isAutoRead()){
-                List<Map<String, String>> metas = serverManager.getMetaData(port);
-                metas.forEach(metaData->{
-                    HashMap<String, String> data = new HashMap<>(metaData);
-                    data.put(Constants.VISITOR_ID, visitorId);
-                    String licenseKey = metaData.get(Constants.LICENSE_KEY);
-                    TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-                    TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(data, byteBuf);
-                    clientCtx.writeAndFlush(transferDataMessage);
-                });
-            }else{
-                serverManager.removeClientChannel(clientCtx);
-                clientCtx.close();
-            }
-
-        });
-
+        Map<String, String> meta = serverManager.getMetaData(port);
+        if (meta != null) {
+            HashMap<String, String> data = new HashMap<>(meta);
+            data.put(Constants.VISITOR_ID, visitorId);
+            String licenseKey = meta.get(Constants.LICENSE_KEY);
+            TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+            TransferDataMessage transferDataMessage = transferDataMessageHelper.buildTransferMessage(data, byteBuf);
+            clientChannelCtx.writeAndFlush(transferDataMessage);
+        }
     }
 
     @Override
@@ -125,5 +124,17 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         log.error("\nerr:{}", cause.getMessage());
         cause.printStackTrace();
         ctx.close();
+    }
+
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+        Integer port = getPort(ctx);
+        ChannelHandlerContext clientChannelCtx = serverManager.getClientChannelCtx(port);
+        if(clientChannelCtx == null) {
+            ctx.close();
+            return;
+        }
+        clientChannelCtx.channel().config().setOption(ChannelOption.AUTO_READ, ctx.channel().isWritable());
+        super.channelWritabilityChanged(ctx);
     }
 }
