@@ -6,9 +6,9 @@
 
 - [x] TCP 穿透
 - [x] 桌面端客户端
+- [x] C/S 端监控
+- [x] admin 端的操作控制
 - [ ] UDP 穿透
-- [ ] C/S 端监控
-- [ ] admin 端的操作控制
 
 ### 配置文件参考
 
@@ -73,13 +73,7 @@ java -jar client.jar
 
 #### 客户端(桌面版)
 
-![](doc/images/home-light.png)
-![](doc/images/proxy-light.png)
-![](doc/images/config-light.png)
-![](doc/images/run-light.png)
-![](doc/images/setting-light.png)
-![](doc/images/home-dark.png)
-![](doc/images/home-compact.png)
+> 待发布
 
 ## 技术栈说明
 
@@ -100,3 +94,26 @@ java -jar client.jar
 - client: Java 版 Client
 - desktop: 基于 tauri 实现的桌面应用
 - rclient: Rust 版 Client
+
+
+## 效果图
+
+### 客户端桌面版
+
+![](doc/images/home-light.png)
+![](doc/images/proxy-light.png)
+![](doc/images/config-light.png)
+![](doc/images/run-light.png)
+![](doc/images/setting-light.png)
+![](doc/images/home-dark.png)
+![](doc/images/home-compact.png)
+
+### 管理端
+
+![img.png](doc/images/admin-home.png)
+
+![img.png](doc/images/admin-analysis.png)
+
+![img.png](doc/images/admin-config.png)
+
+![img.png](doc/images/admin-client.png)
