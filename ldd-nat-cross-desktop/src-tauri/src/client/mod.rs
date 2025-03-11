@@ -13,11 +13,14 @@ use tokio::{
 };
 
 use crate::{
-    common::constants::{LICENSE_KEY, SERVER_ERROR_CODE, VISITOR_ID},
+    common::constants::{APP_CONNECT, APP_RUNTIME, LICENSE_KEY, SERVER_ERROR_CODE, VISITOR_ID},
     core::{cmd_type::CmdType, transfer_message::TransferDataMessage},
-    helper::message::{
-        build_auth_message, build_connect_message, build_disconnect_message,
-        build_open_server_message, build_transfer_message,
+    helper::{
+        log::{add_err_log, add_normal_log},
+        message::{
+            build_auth_message, build_connect_message, build_disconnect_message,
+            build_open_server_message, build_transfer_message,
+        },
     },
     model::{command::CommandResult, proxy::ProxyConfig, ClientConfig},
 };
@@ -230,6 +233,8 @@ impl ClientApp {
                                             .send(open_server_msg)
                                             .await.unwrap();
                                     }
+
+                                    add_normal_log(APP_CONNECT, &format!("服务端连接成功！"));
                                 }
                                 CmdType::AuthErr => {
                                     log::error!("客户端认证失败!");
@@ -348,6 +353,7 @@ impl ClientApp {
                         log::error!("{:?}",err_payload);
                         if let Err(e) = app.emit_to(EventTarget::webview("app_err_handler"), "app_err_handler", err_payload) {
                             log::error!("Failed to emit error event: {:?}", e);
+                            add_err_log(APP_RUNTIME, &format!("Failed to emit error event: {:?}", e));
                         }
                     },
                     // 监听关机信号

@@ -44,4 +44,7 @@ public interface Constants {
     String VISITOR_ID = "visitor_id";
 
     String MESSAGE = "message";
+
+    String UDP_REMOTE_IP = "udp_remote_ip";
+    String UDP_REMOTE_PORT = "udp_remote_port";
 }

@@ -1,6 +1,8 @@
 use std::time::Duration;
 
 use crate::{
+    common::constants::{CONFIG_ADD, CONFIG_DELETE, CONFIG_QUERY, CONFIG_UPDATE},
+    helper::log::{add_err_log, add_normal_log},
     model::{
         command::CommandResult,
         dto::{AddProxyConfig, PageResult},
@@ -36,8 +38,18 @@ pub fn add_config(client_config: ClientConfig) -> CommandResult<()> {
 
     let server_cnt = server_dao
         .insert(server_config.clone())
-        .map_err(|_| CommandResult::<()>::err("insert server config failed."))
+        .map_err(|_| {
+            add_err_log(
+                CONFIG_ADD,
+                &format!("添加服务端配置失败:{:?}", server_config.clone()),
+            );
+            CommandResult::<()>::err("insert server config failed.")
+        })
         .unwrap();
+    add_normal_log(
+        CONFIG_ADD,
+        &format!("添加了一条服务端配置:{:?}", server_config.clone()),
+    );
 
     // add proxy config
     let proxies = client_config.proxies;
@@ -58,10 +70,20 @@ pub fn add_config(client_config: ClientConfig) -> CommandResult<()> {
         .collect();
 
     let proxy_cnt = proxy_dao
-        .insert_batch(proxy_configs)
-        .map_err(|_| CommandResult::<()>::err("insert proxy config failed."))
+        .insert_batch(proxy_configs.clone())
+        .map_err(|_| {
+            add_err_log(
+                CONFIG_ADD,
+                &format!("添加代理配置信息失败:{:?}", proxy_configs),
+            );
+            CommandResult::<()>::err("insert proxy config failed.")
+        })
         .unwrap();
 
+    add_normal_log(
+        CONFIG_ADD,
+        &format!("添加代理配置信息成功:{:?}", proxy_configs),
+    );
     CommandResult::ok(&format!(
         "成功添加 {} 条服务端配置 {} 条客户端配置",
         server_cnt, proxy_cnt
@@ -73,8 +95,18 @@ pub fn add_server_config(server_config: ServerConfigDO) -> CommandResult<usize> 
     let server_dao = ServerConfigDAO::new();
     let i = server_dao
         .insert(server_config.clone())
-        .map_err(|_| CommandResult::<()>::err("insert server config failed."))
+        .map_err(|_| {
+            add_err_log(
+                CONFIG_ADD,
+                &format!("添加服务端配置失败:{:?}", server_config.clone()),
+            );
+            CommandResult::<()>::err("insert server config failed.")
+        })
         .unwrap();
+    add_normal_log(
+        CONFIG_ADD,
+        &format!("添加了一条服务端配置:{:?}", server_config.clone()),
+    );
     CommandResult::ok_with_msg_data("添加成功", i)
 }
 
@@ -86,8 +118,18 @@ pub async fn page_server_config(
     let server_dao = ServerConfigDAO::new();
     let res = server_dao
         .page(page, page_size)
-        .map_err(|_| CommandResult::<()>::err("query failed."))
+        .map_err(|e| {
+            add_err_log(CONFIG_QUERY, &format!("分页查询服务端配置列表失败:{:?}", e));
+            CommandResult::<()>::err("query failed.")
+        })
         .unwrap();
+    add_normal_log(
+        CONFIG_QUERY,
+        &format!(
+            "分页查询服务端配置列表成功,page:{} pageSize:{}",
+            page, page_size
+        ),
+    );
     CommandResult::ok_with_data(res)
 }
 
@@ -96,9 +138,16 @@ pub async fn add_proxy_config_batch(data: AddProxyConfig) -> CommandResult<usize
     let mut proxy_dao = ProxyConfigDAO::new();
     let proxies = data.proxies;
     let res = proxy_dao
-        .insert_batch(proxies)
-        .map_err(|_| CommandResult::<()>::err("insert proxy config failed."))
+        .insert_batch(proxies.clone())
+        .map_err(|e| {
+            add_err_log(
+                CONFIG_ADD,
+                &format!("添加代理配置信息失败:{:?} err_msg:{:?}", proxies.clone(), e),
+            );
+            CommandResult::<()>::err("insert proxy config failed.")
+        })
         .unwrap();
+    add_normal_log(CONFIG_ADD, &format!("添加代理配置成功:{:?}", proxies));
     CommandResult::ok_with_msg_data(&format!("成功添加{}条配置", res), res)
 }
 
@@ -107,8 +156,19 @@ pub fn page_proxy_config(page: i32, page_size: i32) -> CommandResult<PageResult<
     let proxy_dao = ProxyConfigDAO::new();
     let res = proxy_dao
         .page(page, page_size)
-        .map_err(|_| CommandResult::<()>::err("query failed."))
+        .map_err(|e| {
+            add_err_log(CONFIG_QUERY, &format!("分页查询代理配置列表失败:{:?}", e));
+            CommandResult::<()>::err("query failed.")
+        })
         .unwrap();
+
+    add_normal_log(
+        CONFIG_QUERY,
+        &format!(
+            "分页查询代理配置列表成功,page:{} pageSize:{}",
+            page, page_size
+        ),
+    );
     CommandResult::ok_with_data(res)
 }
 
@@ -117,8 +177,12 @@ pub fn del_server_config(id: i32) -> CommandResult<usize> {
     let server_dao = ServerConfigDAO::new();
     let res = server_dao
         .delete_by_id(id)
-        .map_err(|_| CommandResult::<()>::err("del server config failed."))
+        .map_err(|e| {
+            add_err_log(CONFIG_DELETE, &format!("删除服务端配置失败:{:?}", e));
+            CommandResult::<()>::err("del server config failed.")
+        })
         .unwrap();
+    add_normal_log(CONFIG_DELETE, &format!("删除服务端配置成功！"));
     CommandResult::ok_with_msg_data("删除服务端配置成功", res)
 }
 
@@ -127,8 +191,12 @@ pub fn del_proxy_config(id: i32) -> CommandResult<usize> {
     let proxy_dao = ProxyConfigDAO::new();
     let res = proxy_dao
         .delete_by_id(id)
-        .map_err(|_| CommandResult::<()>::err("del proxy config failed."))
+        .map_err(|e| {
+            add_err_log(CONFIG_DELETE, &format!("删除代理配置失败:{:?}", e));
+            CommandResult::<()>::err("del proxy config failed.")
+        })
         .unwrap();
+    add_normal_log(CONFIG_DELETE, &format!("删除代理配置成功！"));
     CommandResult::ok_with_msg_data("删除代理配置成功", res)
 }
 
@@ -178,9 +246,16 @@ pub async fn ping(host: &str, port: i32, protocol: &str) -> Result<CommandResult
 pub async fn update_server_config(server_config: ServerConfigDO) -> CommandResult<usize> {
     let server_dao = ServerConfigDAO::new();
     let res = server_dao
-        .update_by_id(server_config)
-        .map_err(|_| CommandResult::<()>::err("更新服务配置失败"))
+        .update_by_id(server_config.clone())
+        .map_err(|e| {
+            add_err_log(CONFIG_UPDATE, &format!("更新服务端配置失败:{:?}", e));
+            CommandResult::<()>::err("更新服务配置失败")
+        })
         .unwrap();
+    add_normal_log(
+        CONFIG_UPDATE,
+        &format!("更新服务端配置成功:{:?}", server_config),
+    );
     CommandResult::ok_with_msg_data("更新服务配置成功", res)
 }
 
@@ -188,8 +263,15 @@ pub async fn update_server_config(server_config: ServerConfigDO) -> CommandResul
 pub async fn update_proxy_config(proxy_config: ProxyConfigDO) -> CommandResult<usize> {
     let proxy_dao = ProxyConfigDAO::new();
     let res = proxy_dao
-        .update_by_id(proxy_config)
-        .map_err(|_| CommandResult::<()>::err("更新代理配置失败"))
+        .update_by_id(proxy_config.clone())
+        .map_err(|e| {
+            add_err_log(CONFIG_UPDATE, &format!("更新代理配置失败:{:?}", e));
+            CommandResult::<()>::err("更新代理配置失败")
+        })
         .unwrap();
+    add_normal_log(
+        CONFIG_UPDATE,
+        &format!("更新代理配置成功:{:?}", proxy_config),
+    );
     CommandResult::ok_with_msg_data("更新代理配置成功", res)
 }

@@ -40,3 +40,21 @@ pub const SERVER_ERROR_CODE: i32 = 10;
  * 客户端处的错误代码
  */
 pub const APP_ERROR_CODE: i32 = 100;
+
+/**
+ * 日志操作
+ */
+pub const APP_CONNECT: i32 = 0; // APP连接
+pub const APP_DISCONNECT: i32 = 1; // APP端口
+pub const CONFIG_QUERY: i32 = 2; // 配置查询
+pub const CONFIG_ADD: i32 = 3; // 配置添加
+pub const CONFIG_UPDATE: i32 = 4; // 配置更新
+pub const CONFIG_DELETE: i32 = 5; // 配置删除
+pub const SETTING_UPDATE: i32 = 6; // 系统设置更新
+pub const APP_RUNTIME: i32 = 7; // APP执行过程中
+
+/**
+ * 日志类型
+ */
+pub const NORMAL: i32 = 0; // 一般日志/正常日志
+pub const ERR: i32 = 1; // 错误日志

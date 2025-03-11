@@ -1,6 +1,5 @@
 use app_lib::store::{
-    model::config::ServerConfigDO, proxy_config_dao::ProxyConfigDAO,
-    server_config_dao::ServerConfigDAO,
+    log_dao::LogDAO, model::config::ServerConfigDO, proxy_config_dao::ProxyConfigDAO, server_config_dao::ServerConfigDAO
 };
 
 #[test]
@@ -20,6 +19,11 @@ pub fn test_server_reset() {
 pub fn test_proxy_reset() {
     let proxy_config_dao = ProxyConfigDAO::new();
     proxy_config_dao.reset_data().unwrap();
+}
+
+#[test]
+pub fn test_log_reset() {
+    LogDAO::new().reset_data().unwrap();
 }
 
 #[test]

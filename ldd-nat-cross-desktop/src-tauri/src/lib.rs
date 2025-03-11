@@ -42,9 +42,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             command::client::start_app,
             command::client::stop_app,
-            command::client::last_config,
             command::home::count_info,
-            command::log::add_connect_log,
             command::log::page_connect_log,
             command::config::add_server_config,
             command::config::page_server_config,

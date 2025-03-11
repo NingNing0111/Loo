@@ -3,11 +3,10 @@ import { invoke } from '@tauri-apps/api/core';
 
 export interface ConnectLog {
   id?: number;
-  serverId: number;
-  proxyIds: number[];
-  operation: 0 | 1;
-  status: number;
-  connectedTime: number;
+  operation: number;
+  logType: number;
+  description: string;
+  createdTime?: number;
 }
 
 export const addConnectLog = async (log: ConnectLog) => {

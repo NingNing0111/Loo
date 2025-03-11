@@ -10,10 +10,8 @@ import me.pgthinker.admin.vo.VisitorConfigVO;
 import me.pgthinker.config.AdminConfig;
 import me.pgthinker.config.ServerConfig;
 import me.pgthinker.core.initializer.ServerInitializer;
-import me.pgthinker.net.TcpServer;
-import org.springframework.beans.factory.annotation.Autowired;
+import me.pgthinker.net.tcp.TcpServer;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -68,7 +66,7 @@ public class ProxyServer {
         try {
             tcpServer.bind(serverConfig.getPort(), new ServerInitializer(tcpServer));
             printSuccessStarted();
-        }catch (InterruptedException e){
+        }catch (Exception e){
             log.error("server start fail. error msg:{}", e.getMessage());
         }
     }

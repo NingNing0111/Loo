@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LocalProxyConfig, ServerConfig } from './types';
 
 export const EMPTY_SERVER_INFO: ServerConfig = {
+  label: '',
   serverHost: '-',
   serverPort: -1,
   password: '',

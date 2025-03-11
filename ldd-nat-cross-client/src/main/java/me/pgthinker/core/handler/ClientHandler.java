@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,11 +14,14 @@ import me.pgthinker.ProxyConfig;
 import me.pgthinker.common.Constants;
 import me.pgthinker.config.ClientConfig;
 import me.pgthinker.enums.CmdTypeProto.CmdType;
+import me.pgthinker.enums.ProtocolEnum;
 import me.pgthinker.exception.AuthenticationException;
 import me.pgthinker.helper.TransferDataMessageHelper;
 import me.pgthinker.core.manager.ClientManager;
 import me.pgthinker.message.TransferDataMessageProto.TransferDataMessage;
-import me.pgthinker.net.TcpConnect;
+import me.pgthinker.net.Connect;
+import me.pgthinker.net.tcp.TcpConnect;
+import me.pgthinker.net.udp.UdpConnect;
 
 import java.util.List;
 import java.util.Map;
@@ -115,10 +119,14 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();
         ProxyConfig proxyConfig = ProxyConfig.fromMap(metaDataMap);
         String visitorId = metaDataMap.get(Constants.VISITOR_ID);
-        TcpConnect tcpConnect = new TcpConnect(new NioEventLoopGroup());
-        try {
-            ChannelHandlerContext serverCtx = this.clientCtx;
-            tcpConnect.connect(proxyConfig.getHost(), proxyConfig.getPort(), new ChannelInitializer<>() {
+        String protocol = proxyConfig.getProtocol();
+        Connect connect = null;
+        ChannelInitializer channelInitializer = null;
+        ChannelHandlerContext serverCtx = this.clientCtx;
+        if(protocol.equals(ProtocolEnum.TCP.getValue())) {
+            connect = new TcpConnect(new NioEventLoopGroup());
+            channelInitializer = new ChannelInitializer<SocketChannel>() {
+
                 @Override
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
                     LocalProxyHandler localProxyHandler = new LocalProxyHandler(serverCtx, metaDataMap);
@@ -126,14 +134,34 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
                     ClientManager.setLocalProxyChannel(visitorId, localProxyHandler);
                     channelGroup.add(socketChannel); // 记录Channel
                 }
-            });
-        }catch (Exception e){
-            log.info("error:{}", e.getMessage());
+            };
         }
-        String licenseKey = metaDataMap.get(Constants.LICENSE_KEY);
-        TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
-        TransferDataMessage connectedMessage = transferDataMessageHelper.buildConnectMessage(proxyConfig, visitorId);
-        this.clientCtx.writeAndFlush(connectedMessage);
+        if(protocol.equals(ProtocolEnum.UDP.getValue())){
+            connect = new UdpConnect(new NioEventLoopGroup());
+            channelInitializer = new ChannelInitializer<DatagramChannel>() {
+
+                @Override
+                protected void initChannel(DatagramChannel datagramChannel) throws Exception {
+                    LocalProxyHandler localProxyHandler = new LocalProxyHandler(serverCtx, metaDataMap);
+                    datagramChannel.pipeline().addLast(localProxyHandler);
+                    ClientManager.setLocalProxyChannel(visitorId, localProxyHandler);
+                    channelGroup.add(datagramChannel); // 记录Channel
+                }
+            };
+        }
+        if(connect != null){
+            try {
+                connect.connect(proxyConfig.getHost(), proxyConfig.getPort(), channelInitializer);
+            }catch (Exception e){
+                log.info("error:{}", e.getMessage());
+            }
+            String licenseKey = metaDataMap.get(Constants.LICENSE_KEY);
+            TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
+            TransferDataMessage connectedMessage = transferDataMessageHelper.buildConnectMessage(proxyConfig, visitorId);
+            this.clientCtx.writeAndFlush(connectedMessage);
+        }
+
+
     }
 
     /**
@@ -152,18 +180,26 @@ public class ClientHandler extends SimpleChannelInboundHandler<TransferDataMessa
 
     private void handleTransfer (TransferDataMessage transferDataMessage) throws InterruptedException {
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();
+        String protocol = metaDataMap.get(Constants.PROXY_PROTOCOL);
         String visitorID = metaDataMap.get(Constants.VISITOR_ID);
         String licenseKey = metaDataMap.get(Constants.LICENSE_KEY);
-        byte[] bytes = transferDataMessage.getData().toByteArray();
-        ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
-        LocalProxyHandler localProxyChannel = ClientManager.getLocalProxyChannel(visitorID);
-        if(localProxyChannel != null){
-            localProxyChannel.getCtx().writeAndFlush(byteBuf);
-        }else{
-            // TODO: 断开请求
-            TransferDataMessageHelper helper = new TransferDataMessageHelper(licenseKey);
-            helper.buildDisconnectMessage(ProxyConfig.fromMap(metaDataMap),visitorID);
+        if(protocol.equals(ProtocolEnum.UDP.getValue())){
+
         }
+        if(protocol.equals(ProtocolEnum.TCP.getValue())){
+            byte[] bytes = transferDataMessage.getData().toByteArray();
+            ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
+            LocalProxyHandler localProxyChannel = ClientManager.getLocalProxyChannel(visitorID);
+            if(localProxyChannel != null){
+                localProxyChannel.getCtx().writeAndFlush(byteBuf);
+            }else{
+                // TODO: 断开请求
+                TransferDataMessageHelper helper = new TransferDataMessageHelper(licenseKey);
+                helper.buildDisconnectMessage(ProxyConfig.fromMap(metaDataMap),visitorID);
+            }
+        }
+
+
     }
 
 }

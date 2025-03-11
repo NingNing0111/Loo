@@ -42,7 +42,7 @@ public class ProcessConnectMessageService implements ProcessMessageService {
         Map<String, String> metaDataMap =
                 transferDataMessage.getMetaData().getMetaDataMap();
         String visitorId = metaDataMap.get(Constants.VISITOR_ID);
-        ChannelHandlerContext visitorCtx = serverManager.getVisitorCtx(visitorId);
+        ChannelHandlerContext visitorCtx = serverManager.getTcpVisitorCtx(visitorId);
         visitorCtx.channel().config().setOption(ChannelOption.AUTO_READ, true);
     }
 }

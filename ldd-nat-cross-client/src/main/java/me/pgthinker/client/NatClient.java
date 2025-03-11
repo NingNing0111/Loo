@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.pgthinker.config.ClientConfig;
 import me.pgthinker.core.initializer.ClientInitializer;
-import me.pgthinker.net.TcpConnect;
+import me.pgthinker.net.tcp.TcpConnect;
 import org.springframework.stereotype.Component;
 
 /**

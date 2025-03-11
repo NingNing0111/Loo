@@ -1,10 +1,10 @@
-package me.pgthinker.net;
+package me.pgthinker.net.tcp;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import me.pgthinker.net.Server;
 
 /**
  * @Project: me.pgthinker.net
@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
  * @Date: 2024/10/26 18:30
  * @Description:
  */
-public class TcpServer {
+public class TcpServer implements Server {
     @Getter
     private Channel channel;
     private final EventLoopGroup bossGroup;
@@ -22,7 +22,7 @@ public class TcpServer {
         this.workerGroup = workerGroup;
     }
 
-    public synchronized void bind(int port, ChannelInitializer channelInitializer) throws InterruptedException {
+    public synchronized void bind(int port, ChannelInitializer channelInitializer) {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
@@ -34,7 +34,7 @@ public class TcpServer {
 //            e.printStackTrace();
 //            workerGroup.shutdownGracefully();
 //            bossGroup.shutdownGracefully();
-            throw e;
+            throw new RuntimeException(e);
         }
     }
 

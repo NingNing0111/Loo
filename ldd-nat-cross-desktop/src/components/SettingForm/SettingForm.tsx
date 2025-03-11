@@ -5,6 +5,7 @@ import {
   ProForm,
   ProFormSelect,
   ProFormSwitch,
+  ProList,
 } from '@ant-design/pro-components';
 import { useAntdConfigSetter } from '@umijs/max';
 import { Button, Divider, theme } from 'antd';
@@ -15,6 +16,7 @@ interface Props {
   title: string;
   onFinish: (formData: any) => Promise<void>;
   initialValues: SettingInfo | undefined;
+  operationList: any;
 }
 
 const SettingForm: React.FC<Props> = (props) => {
@@ -85,6 +87,36 @@ const SettingForm: React.FC<Props> = (props) => {
         />
         <ProFormSwitch name="compact" label="紧凑布局" width="sm" />
       </ProForm.Group>
+      <Divider />
+      <ProList
+        rowKey={'id'}
+        dataSource={props.operationList}
+        showActions="hover"
+        metas={{
+          title: {
+            dataIndex: 'title',
+          },
+          description: {
+            dataIndex: 'description',
+          },
+          actions: {
+            render: (text, row) => [
+              <Button
+                key={row.title}
+                onClick={() => {
+                  row.action(row);
+                }}
+                variant="solid"
+                size="small"
+                color="danger"
+              >
+                {row.btnName}
+              </Button>,
+            ],
+          },
+        }}
+        pagination={false}
+      ></ProList>
     </ModalForm>
   );
 };

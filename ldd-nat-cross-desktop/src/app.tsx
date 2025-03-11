@@ -82,6 +82,16 @@ export const layout: RunTimeLayoutConfig = (initial) => {
             title="应用设置"
             onFinish={updateSetting}
             initialValues={initialState?.setting}
+            operationList={[
+              {
+                title: '清理日志',
+                description: '清理指定时间内的日志',
+                action: (row: any) => {
+                  console.log(row);
+                },
+                btnName: '清理',
+              },
+            ]}
           />
           <OutlinkButton
             href={`${GITHUB_REPORISTORY}/issues`}

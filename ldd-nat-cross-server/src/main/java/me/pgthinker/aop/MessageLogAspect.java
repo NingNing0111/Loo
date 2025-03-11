@@ -60,16 +60,18 @@ public class MessageLogAspect {
             switch (cmdType) {
                 case AUTH -> printAuthLog(ctx,dataMessage);
                 case OPEN_SERVER -> printOpenServerLog(ctx,dataMessage);
-                case TRANSFER -> printTransferLog(ctx,dataMessage);
+//                case TRANSFER -> printTransferLog(ctx,dataMessage);
             }
         }
         return joinPoint.proceed();
     }
 
     private void printAllLog(ChannelHandlerContext ctx, TransferDataMessage dataMessage) {
-        InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-        String hostString = inetSocketAddress.getHostString();
-        logger.info("\nclient:{} -------> message:{} ", hostString,dataMessage);
+        switch (dataMessage.getCmdType()) {
+            case AUTH -> printAuthLog(ctx,dataMessage);
+            case OPEN_SERVER -> printOpenServerLog(ctx,dataMessage);
+//            case TRANSFER -> printTransferLog(ctx,dataMessage);
+        }
     }
 
     private void printAuthLog(ChannelHandlerContext ctx,TransferDataMessage dataMessage) {
@@ -88,17 +90,11 @@ public class MessageLogAspect {
         logger.info("\nClient:{} -------> CmdTyp:{} proxyConfig:{}", hostString, dataMessage.getCmdType(), proxyConfig);
     }
 
-    private void printTransferLog(ChannelHandlerContext ctx,TransferDataMessage dataMessage) {
-        InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-        String hostString = inetSocketAddress.getHostString();
-        String dataStr = dataMessage.getData().toString(Charset.defaultCharset());
-        Map<String, String> stringStringMap = HttpResponseUtil.parseMap(dataStr);
-        logger.info("\nClient:{} -------> CmdTyp:{} data:{} \n", hostString, dataMessage.getCmdType(), dataStr);
-        if(stringStringMap.containsKey("Content-Type")){
-            logger.info("content-type:{} data:{}", stringStringMap.get("Content-Type"), stringStringMap.get("Response-Body"));
-        }
-
-    }
+//    private void printTransferLog(ChannelHandlerContext ctx,TransferDataMessage dataMessage) {
+//        InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
+//        String hostString = inetSocketAddress.getHostString();
+//        logger.info("\nClient:{} -------> CmdTyp:{}  \n", hostString, dataMessage.getCmdType());
+//    }
 
 
 }

@@ -5,16 +5,15 @@ import cn.hutool.crypto.digest.MD5;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.pgthinker.admin.vo.VisitorConfigVO;
 import me.pgthinker.common.Constants;
-import me.pgthinker.net.TcpServer;
+import me.pgthinker.net.Server;
 import org.springframework.stereotype.Component;
 
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
 
 /**
  * @Project: me.pgthinker.manager
@@ -37,11 +36,12 @@ public class ServerManager {
     // openPort -> licenseKey
     private static final Map<Integer, String> LICENSE_KEY_DATA = new ConcurrentHashMap<>();
     // openPort -> server
-    private static final Map<Integer, TcpServer> PROXY_SERVER_DATA = new ConcurrentHashMap<>();
+    private static final Map<Integer, Server> PROXY_SERVER_DATA = new ConcurrentHashMap<>();
     // openPort -> meta
     private static final Map<Integer, Map<String,String>> PROXY_CONFIG_MAP = new ConcurrentHashMap<>();
     // visitorCtx -> visitorId
-    private static final Map<ChannelHandlerContext, String> VISITOR_CHANNEL_CTX = new ConcurrentHashMap<>();
+    private static final Map<ChannelHandlerContext, String> TCP_VISITOR_CHANNEL_CTX = new ConcurrentHashMap<>();
+    private static final Map<InetSocketAddress, String> UDP_VISITOR_CHANNEL_CTX = new ConcurrentHashMap<>();
     /**
      * 读写锁
      */
@@ -124,15 +124,26 @@ public class ServerManager {
     }
 
     // 当有visitor连接时 上锁
-    public String addVisitorCtx(ChannelHandlerContext visitorCtx){
+    public String addTcpVisitorCtx(ChannelHandlerContext visitorCtx){
         String visitorId = visitorCtx.channel().id().asLongText();
         userChannelMapLock.writeLock().lock();
         try {
-            VISITOR_CHANNEL_CTX.put(visitorCtx, visitorId);
+            TCP_VISITOR_CHANNEL_CTX.put(visitorCtx, visitorId);
         }finally {
             userChannelMapLock.writeLock().unlock();
         }
 
+        return visitorId;
+    }
+
+    public String addUdpVisitorCtx(InetSocketAddress udpAddress){
+        String visitorId = MD5.create().digestHex(udpAddress.getHostString());
+        userChannelMapLock.writeLock().lock();
+        try {
+            UDP_VISITOR_CHANNEL_CTX.put(udpAddress, visitorId);
+        }finally {
+            userChannelMapLock.writeLock().unlock();
+        }
         return visitorId;
     }
 
@@ -148,10 +159,17 @@ public class ServerManager {
     public void removeVisitorCtx(String visitorId){
         userChannelMapLock.readLock().lock();
         try {
-            for(ChannelHandlerContext ctx: VISITOR_CHANNEL_CTX.keySet()) {
-                String storeVisitorId = VISITOR_CHANNEL_CTX.get(ctx);
+            for(ChannelHandlerContext ctx: TCP_VISITOR_CHANNEL_CTX.keySet()) {
+                String storeVisitorId = TCP_VISITOR_CHANNEL_CTX.get(ctx);
                 if(visitorId.equals(storeVisitorId)){
-                    VISITOR_CHANNEL_CTX.remove(ctx);
+                    TCP_VISITOR_CHANNEL_CTX.remove(ctx);
+                }
+            }
+
+            for(InetSocketAddress inetSocketAddress: UDP_VISITOR_CHANNEL_CTX.keySet()){
+                String storeVisitorId = UDP_VISITOR_CHANNEL_CTX.get(inetSocketAddress);
+                if(storeVisitorId.equals(visitorId)){
+                    UDP_VISITOR_CHANNEL_CTX.remove(inetSocketAddress);
                 }
             }
         } finally {
@@ -160,9 +178,9 @@ public class ServerManager {
 
     }
 
-    public ChannelHandlerContext getVisitorCtx(String visitorId){
-        for(ChannelHandlerContext ctx: VISITOR_CHANNEL_CTX.keySet()){
-            String vId = VISITOR_CHANNEL_CTX.get(ctx);
+    public ChannelHandlerContext getTcpVisitorCtx(String visitorId){
+        for(ChannelHandlerContext ctx: TCP_VISITOR_CHANNEL_CTX.keySet()){
+            String vId = TCP_VISITOR_CHANNEL_CTX.get(ctx);
             if(StrUtil.equals(vId, visitorId)){
                 return ctx;
             }
@@ -170,22 +188,36 @@ public class ServerManager {
         return null;
     }
 
-    public String getVisitorId(ChannelHandlerContext ctx) {
-        return VISITOR_CHANNEL_CTX.get(ctx);
+    public InetSocketAddress getUdpVisitorAddress(String visitorId){
+        for (InetSocketAddress address : UDP_VISITOR_CHANNEL_CTX.keySet()) {
+            String vId = UDP_VISITOR_CHANNEL_CTX.get(address);
+            if(StrUtil.equals(vId, visitorId)){
+                return address;
+            }
+        }
+        return null;
+    }
+
+    public String getTcpVisitorId(ChannelHandlerContext ctx) {
+        return TCP_VISITOR_CHANNEL_CTX.get(ctx);
+    }
+
+    public String getUdpVisitorId(InetSocketAddress udpAddress) {
+        return UDP_VISITOR_CHANNEL_CTX.get(udpAddress);
     }
 
     public void addProxyPort(String licenseKey, Integer port) {
         LICENSE_KEY_DATA.put(port, licenseKey);
     }
 
-    public void addTcpServer(Integer port, TcpServer tcpServer) {
-        PROXY_SERVER_DATA.put(port, tcpServer);
+    public void addServer(Integer port, Server server) {
+        PROXY_SERVER_DATA.put(port, server);
     }
 
-    public void stopTcpServer(Integer port){
-        TcpServer tcpServer = PROXY_SERVER_DATA.get(port);
-        if(tcpServer != null){
-            tcpServer.close();
+    public void stopServer(Integer port){
+        Server server = PROXY_SERVER_DATA.get(port);
+        if(server != null){
+            server.close();
         }
         PROXY_SERVER_DATA.remove(port);
     }

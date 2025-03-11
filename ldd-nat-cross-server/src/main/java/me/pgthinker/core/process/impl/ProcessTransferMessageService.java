@@ -37,7 +37,7 @@ public class ProcessTransferMessageService implements ProcessMessageService {
         Map<String, String> originalMetaData = transferDataMessage.getMetaData().getMetaDataMap();
         Map<String, String> metaDataMap = new HashMap<>(originalMetaData);
         String visitorId = metaDataMap.get(Constants.VISITOR_ID);
-        ChannelHandlerContext visitorChannel = serverManager.getVisitorCtx(visitorId);
+        ChannelHandlerContext visitorChannel = serverManager.getTcpVisitorCtx(visitorId);
         if(visitorChannel != null){
             ByteString data = transferDataMessage.getData();
             byte[] bytes = data.toByteArray();

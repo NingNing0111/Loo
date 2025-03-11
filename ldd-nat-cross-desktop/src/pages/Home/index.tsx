@@ -65,12 +65,12 @@ const HomePage: React.FC = () => {
       icon: <SvgServer className="icon-style" />,
     },
     {
-      title: '连接错误数',
+      title: '错误日志',
       value: homeCntInfo ? homeCntInfo.failedCnt : 0,
       icon: <SvgError className="icon-style" />,
     },
     {
-      title: '连接成功数',
+      title: '正常日志',
       value: homeCntInfo ? homeCntInfo.successedCnt : 0,
       icon: <SvgSuccess className="icon-style" />,
     },
@@ -93,13 +93,25 @@ const HomePage: React.FC = () => {
   const futureInfo = [
     {
       id: '1',
-      name: 'TCP 穿透',
-      description: '支持基本的端口映射穿透',
+      name: '高性能及内存安全',
+      description: '客户端基于Rust + Tokio实现，具有内存安全、高性能的特点',
     },
     {
       id: '2',
-      name: '配置管理',
-      description: '配置的增删改查管理，支持网络连接测试',
+      name: '简单的配置管理',
+      description:
+        '提供友好简洁的服务端和代理端的配置信息管理界面，支持网络连接测试',
+    },
+    {
+      id: '3',
+      name: 'C/S端监控',
+      description:
+        '通过管理端界面对服务端和客户端进行监控，支持客户端强制下线的功能',
+    },
+    {
+      id: '4',
+      name: '尺寸小、跨平台',
+      description: '使用Tauri进行打包发布，支持跨平台',
     },
   ];
 
@@ -124,7 +136,7 @@ const HomePage: React.FC = () => {
         headerBordered
         className="content-card"
       >
-        <ProCard title="开发信息">
+        <ProCard title="开发信息" colSpan="28%">
           <ProDescriptions column={1} dataSource={descriptionInfo}>
             <ProDescriptions.Item label="版本号" dataIndex="version" />
 
@@ -154,7 +166,8 @@ const HomePage: React.FC = () => {
             <ProDescriptions.Item label="项目介绍" dataIndex="introduce" />
           </ProDescriptions>
         </ProCard>
-        <ProCard title="功能特性">
+
+        <ProCard title="功能特性" colSpan="32%">
           <ProList
             rowKey={'id'}
             dataSource={futureInfo}
@@ -162,6 +175,9 @@ const HomePage: React.FC = () => {
             metas={{
               title: {
                 dataIndex: 'name',
+                render: (dom, entity) => {
+                  return <span>{`${entity.id}. ${entity.name}`}</span>;
+                },
               },
               description: {
                 dataIndex: 'description',
@@ -170,46 +186,42 @@ const HomePage: React.FC = () => {
             pagination={false}
           />
         </ProCard>
-        <ProCard title="运行日志">
+
+        <ProCard title="运行日志" colSpan="40%">
           <ProList
             rowKey={'id'}
             dataSource={connectLogList}
             showActions="hover"
             metas={{
               title: {
-                dataIndex: 'status',
-                render: (data) => {
+                dataIndex: 'logType',
+                render: (dom, entity) => {
                   return (
                     <>
-                      {data === 1 ? (
+                      {entity.logType === 0 ? (
                         <Tag color="success">成功</Tag>
                       ) : (
                         <Tag color="red">失败</Tag>
                       )}
+                      {
+                        <span>
+                          {formatTimestamp((entity.createdTime ?? 0) * 1000)}
+                        </span>
+                      }
                     </>
                   );
                 },
               },
               description: {
-                dataIndex: 'operation',
-                render: (data) => {
-                  return <>{data === 0 ? '启动穿透' : '关闭穿透'}</>;
-                },
-              },
-              extra: {
-                dataIndex: 'createdTime',
-                render: (data: number) => {
-                  return <span>{formatTimestamp(data * 1000)}</span>;
-                },
+                dataIndex: 'description',
               },
             }}
             pagination={{
               pageSize: logPageParam.pageSize,
               current: logPageParam.page,
-              size: 'small',
               simple: true,
               total: logTotal,
-              align: 'center',
+              showSizeChanger: false,
               onChange: (page, pageSize) => {
                 logPageParam.page = page;
                 logPageParam.pageSize = pageSize;

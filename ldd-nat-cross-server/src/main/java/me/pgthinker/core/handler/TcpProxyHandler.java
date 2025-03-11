@@ -11,8 +11,10 @@ import me.pgthinker.common.Constants;
 import me.pgthinker.helper.TransferDataMessageHelper;
 import me.pgthinker.core.manager.ServerManager;
 import me.pgthinker.message.TransferDataMessageProto.TransferDataMessage;
+import me.pgthinker.util.ChannelUtil;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,11 +25,11 @@ import java.util.Map;
  * @Description: 用户访问的Channel Handler
  */
 @Slf4j
-public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class TcpProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private final ServerManager serverManager;
 
-    public ProxyHandler() {
+    public TcpProxyHandler() {
         this.serverManager = SpringUtil.getBean(ServerManager.class);
     }
 
@@ -40,7 +42,7 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // 根据openPort 获取对应的客户端
-        Integer port = getPort(ctx);
+        Integer port = ChannelUtil.getPort(ctx);
         ChannelHandlerContext clientChannelCtx = serverManager.getClientChannelCtx(port);
         if (clientChannelCtx == null) {
             ctx.close();
@@ -50,7 +52,7 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         if (meta != null) {
             String licenseKey = meta.get(Constants.LICENSE_KEY);
             ProxyConfig proxyConfig = ProxyConfig.fromMap(meta);
-            String visitorId = serverManager.getVisitorId(ctx);
+            String visitorId = serverManager.getTcpVisitorId(ctx);
             TransferDataMessageHelper transferDataMessageHelper = new TransferDataMessageHelper(licenseKey);
             TransferDataMessage message;
             message = transferDataMessageHelper.buildDisconnectMessage(proxyConfig, visitorId);
@@ -69,7 +71,7 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         // 根据openPort 获取对应的客户端
-        Integer port = getPort(ctx);
+        Integer port = ChannelUtil.getPort(ctx);
         ChannelHandlerContext clientChannelCtx = serverManager.getClientChannelCtx(port);
         // 还没有对应的客户端Channel 则关闭
         if (clientChannelCtx == null) {
@@ -82,7 +84,7 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
             ctx.channel().close();
             return;
         }
-        String visitorId = serverManager.addVisitorCtx(ctx);
+        String visitorId = serverManager.addTcpVisitorCtx(ctx);
         // 等待实际的连接成功 再允许读
         ctx.channel().config().setOption(ChannelOption.AUTO_READ, false);
         String licenseKey = meta.get(Constants.LICENSE_KEY);
@@ -93,21 +95,19 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
         clientChannelCtx.writeAndFlush(message);
     }
 
-    private Integer getPort(ChannelHandlerContext ctx) {
-        InetSocketAddress socketAddress = (InetSocketAddress) ctx.channel().localAddress();
-        return socketAddress.getPort();
-    }
+
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception {
-        Integer port = getPort(ctx);
+        log.info("请求数据:{}", byteBuf.toString(Charset.defaultCharset()));
+        Integer port = ChannelUtil.getPort(ctx);
         ChannelHandlerContext clientChannelCtx = serverManager.getClientChannelCtx(port);
         if (clientChannelCtx == null) {
             ctx.channel().close();
             return;
         }
         ctx.channel().config().setAutoRead(clientChannelCtx.channel().isWritable());
-        String visitorId = serverManager.getVisitorId(ctx);
+        String visitorId = serverManager.getTcpVisitorId(ctx);
         Map<String, String> meta = serverManager.getMetaData(port);
         if (meta != null) {
             HashMap<String, String> data = new HashMap<>(meta);
@@ -128,7 +128,8 @@ public class ProxyHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-        Integer port = getPort(ctx);
+        Integer port = ChannelUtil.getPort(ctx);
+
         ChannelHandlerContext clientChannelCtx = serverManager.getClientChannelCtx(port);
         if(clientChannelCtx == null) {
             ctx.close();

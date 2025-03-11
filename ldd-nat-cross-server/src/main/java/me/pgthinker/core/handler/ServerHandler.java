@@ -10,7 +10,7 @@ import me.pgthinker.core.factory.IProcessMessageFactory;
 import me.pgthinker.core.manager.ServerManager;
 import me.pgthinker.core.process.ProcessMessageService;
 import me.pgthinker.message.TransferDataMessageProto.TransferDataMessage;
-import me.pgthinker.net.TcpServer;
+import me.pgthinker.net.tcp.TcpServer;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -46,7 +46,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<TransferDataMessa
         // 清理客户端Channel
         serverManager.removeClientChannel(ctx);
         IAdminClient adminClient = SpringUtil.getBean(IAdminClient.class);
-        adminClient.removeClientInfo(licenseKey);
+        if(serverConfig.getAdmin().getEnabled()) {
+            adminClient.removeClientInfo(licenseKey);
+        }
         ctx.close();
     }
 

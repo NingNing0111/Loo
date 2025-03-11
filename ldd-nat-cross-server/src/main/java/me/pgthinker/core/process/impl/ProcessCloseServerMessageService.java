@@ -33,6 +33,6 @@ public class ProcessCloseServerMessageService implements ProcessMessageService {
     public void process(ChannelHandlerContext target, TransferDataMessage transferDataMessage) {
         Map<String, String> metaDataMap = transferDataMessage.getMetaData().getMetaDataMap();
         String openPort = metaDataMap.get(Constants.OPEN_PORT);
-        serverManager.stopTcpServer(Integer.parseInt(openPort));
+        serverManager.stopServer(Integer.parseInt(openPort));
     }
 }

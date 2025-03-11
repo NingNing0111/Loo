@@ -30,9 +30,9 @@ import './index.less';
 
 const serverColumns: ProColumns<ServerConfig>[] = [
   {
-    title: '序号',
-    dataIndex: 'index',
-    valueType: 'index',
+    title: '标签',
+    dataIndex: 'label',
+    valueType: 'text',
   },
   {
     title: '主机名',
@@ -52,9 +52,8 @@ const serverColumns: ProColumns<ServerConfig>[] = [
 
 const localProxyColumns: ProColumns<LocalProxyConfig>[] = [
   {
-    title: '序号',
-    dataIndex: 'index',
-    valueType: 'index',
+    title: '标签',
+    dataIndex: 'label',
   },
   {
     title: '代理主机',

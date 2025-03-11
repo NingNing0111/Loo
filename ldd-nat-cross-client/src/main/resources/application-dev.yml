@@ -1,0 +1,14 @@
+client:
+  serverHost: localhost
+  serverPort: 8964
+  password: 123456
+  # 多协议、端口代理
+  proxies:
+    - host: localhost
+      port: 12345
+      protocol: udp
+      openPort: 9012
+    - host: localhost
+      port: 3306
+      protocol: tcp
+      openPort: 9011

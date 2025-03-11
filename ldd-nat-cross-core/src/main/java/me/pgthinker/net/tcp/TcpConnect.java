@@ -1,4 +1,4 @@
-package me.pgthinker.net;
+package me.pgthinker.net.tcp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -6,6 +6,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
+import me.pgthinker.net.Connect;
 
 /**
  * @Project: me.pgthinker.net
@@ -13,7 +14,7 @@ import lombok.Getter;
  * @Date: 2024/10/29 13:35
  * @Description:
  */
-public class TcpConnect {
+public class TcpConnect implements Connect {
 
 
     @Getter
@@ -25,8 +26,8 @@ public class TcpConnect {
         this.workerGroup = workerGroup;
     }
 
-
-    public void connect(String host, int port, ChannelInitializer<SocketChannel> channelInitializer) throws InterruptedException{
+    @Override
+    public void connect(String host, int port, ChannelInitializer channelInitializer){
         try {
             Bootstrap b = new Bootstrap();
             b.group(workerGroup);
@@ -37,7 +38,7 @@ public class TcpConnect {
             channel.closeFuture().addListener((ChannelFutureListener) future -> workerGroup.shutdownGracefully());
         } catch (Exception e){
             workerGroup.shutdownGracefully();
-            throw e;
+            throw new RuntimeException(e);
         }
     }
 

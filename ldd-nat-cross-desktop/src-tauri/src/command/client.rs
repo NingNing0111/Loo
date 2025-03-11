@@ -2,11 +2,9 @@ use tauri::AppHandle;
 
 use crate::{
     client::ClientApp,
-    model::{command::CommandResult, dto::AppConfig, ClientConfig},
-    store::{
-        connect_log_dao::ConnectLogDAO, model::config::ProxyConfigDO,
-        proxy_config_dao::ProxyConfigDAO, server_config_dao::ServerConfigDAO,
-    },
+    common::constants::APP_DISCONNECT,
+    helper::log::{add_err_log, add_normal_log},
+    model::{command::CommandResult, ClientConfig},
     APP_STATE,
 };
 
@@ -44,32 +42,13 @@ pub async fn stop_app() -> CommandResult<()> {
     let mut client_lock = APP_STATE.client.lock().await;
     if let Some(app) = client_lock.take() {
         if let Err(e) = app.stop().await {
+            add_err_log(APP_DISCONNECT, &format!("关闭内网穿透异常:{:?}", e));
             return CommandResult::err(e.to_string().as_str());
         }
     } else {
+        add_normal_log(APP_DISCONNECT, "No running app to stop.");
         return CommandResult::err("No running app to stop.");
     }
+    add_normal_log(APP_DISCONNECT, "关闭服务成功");
     CommandResult::ok("服务已停止")
-}
-
-#[tauri::command]
-pub async fn last_config() -> CommandResult<Option<AppConfig>> {
-    let log_dao = ConnectLogDAO::new();
-    let server_dao = ServerConfigDAO::new();
-    let proxy_dao = ProxyConfigDAO::new();
-    let last_res = log_dao.last_connect().unwrap();
-    match last_res {
-        Some(last_conn) => {
-            let server = server_dao.find_by_id(last_conn.server_id).unwrap();
-            let mut proxies = Vec::<ProxyConfigDO>::new();
-            for proxy_id in last_conn.proxy_ids {
-                let proxy = proxy_dao.find_by_id(proxy_id).unwrap();
-                if proxy.is_some() {
-                    proxies.push(proxy.unwrap());
-                }
-            }
-            CommandResult::ok_with_data(Some(AppConfig { server, proxies }))
-        }
-        None => CommandResult::err("无数据"),
-    }
 }
