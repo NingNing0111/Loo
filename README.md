@@ -95,7 +95,6 @@ java -jar client.jar
 - desktop: 基于 tauri 实现的桌面应用
 - rclient: Rust 版 Client
 
-
 ## 效果图
 
 ### 客户端桌面版
@@ -117,3 +116,9 @@ java -jar client.jar
 ![img.png](doc/images/admin-config.png)
 
 ![img.png](doc/images/admin-client.png)
+
+## 开发环境
+
+- JDK 17
+- Node 18
+- Rust 1.85
