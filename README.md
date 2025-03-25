@@ -20,12 +20,20 @@
 server:
   port: 8964
   password: 123456
+  #  msg-log-range: disconnect,open_server,auth # 指定某个范围的日志
+  all-log: true # 打开所有日志
+  # 管理端配置
+  admin:
+    enabled: false # 是否接入Admin端
+    base-url: http://localhost:7989/api
+    server-name: location_server # 服务名称
+    server-hostname: 127.0.0.1 # 服务主机名
 ```
 
 - `server.port`: 必填。服务端对外暴露的端口，供客户端接入.
 - `server.password`: 必填。密码，客户端接入时认证
 
-#### 客户端:
+#### 客户端（Java 版）:
 
 ```yaml
 client:
@@ -73,7 +81,23 @@ java -jar client.jar
 
 #### 客户端(桌面版)
 
-> 待发布
+![](doc/images/home-light.png)
+![](doc/images/proxy-light.png)
+![](doc/images/config-light.png)
+![](doc/images/run-light.png)
+![](doc/images/setting-light.png)
+![](doc/images/home-dark.png)
+![](doc/images/home-compact.png)
+
+### 管理端
+
+![img.png](doc/images/admin-home.png)
+
+![img.png](doc/images/admin-analysis.png)
+
+![img.png](doc/images/admin-config.png)
+
+![img.png](doc/images/admin-client.png)
 
 ## 技术栈说明
 
@@ -94,28 +118,6 @@ java -jar client.jar
 - client: Java 版 Client
 - desktop: 基于 tauri 实现的桌面应用
 - rclient: Rust 版 Client
-
-## 效果图
-
-### 客户端桌面版
-
-![](doc/images/home-light.png)
-![](doc/images/proxy-light.png)
-![](doc/images/config-light.png)
-![](doc/images/run-light.png)
-![](doc/images/setting-light.png)
-![](doc/images/home-dark.png)
-![](doc/images/home-compact.png)
-
-### 管理端
-
-![img.png](doc/images/admin-home.png)
-
-![img.png](doc/images/admin-analysis.png)
-
-![img.png](doc/images/admin-config.png)
-
-![img.png](doc/images/admin-client.png)
 
 ## 开发环境
 
