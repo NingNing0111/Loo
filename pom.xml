@@ -5,15 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.pgthinker</groupId>
-    <artifactId>ldd-nat-cross</artifactId>
+    <artifactId>loo</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>ldd-nat-cross-core</module>
-        <module>ldd-nat-cross-server</module>
-        <module>ldd-nat-cross-client</module>
-        <module>ldd-nat-cross-admin</module>
+        <module>loo-core</module>
+        <module>loo-server</module>
+        <module>loo-client</module>
+        <module>loo-admin</module>
     </modules>
 
 

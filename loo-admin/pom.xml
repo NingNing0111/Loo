@@ -5,19 +5,19 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>me.pgthinker</groupId>
-        <artifactId>ldd-nat-cross</artifactId>
+        <artifactId>loo</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>ldd-nat-cross-admin</artifactId>
+    <artifactId>loo-admin</artifactId>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
 
     <dependencies>
         <dependency>
             <groupId>me.pgthinker</groupId>
-            <artifactId>ldd-nat-cross-core</artifactId>
+            <artifactId>loo-core</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
